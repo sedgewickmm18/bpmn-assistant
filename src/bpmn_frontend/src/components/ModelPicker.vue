@@ -18,6 +18,7 @@ const Models = Object.freeze({
   SONNET_3_5: "claude-3-5-sonnet-20241022",
   GEMINI_1_5_FLASH: "gemini-1.5-flash",
   GEMINI_1_5_PRO: "gemini-1.5-pro",
+  GEMINI_2_FLASH: "gemini-2.0-flash-exp",
 });
 
 const Providers = Object.freeze({
@@ -56,6 +57,11 @@ export default {
         {
           value: Models.GEMINI_1_5_PRO,
           title: "Gemini 1.5 Pro",
+          provider: Providers.GOOGLE,
+        },
+        {
+          value: Models.GEMINI_2_FLASH,
+          title: "Gemini 2.0 Flash",
           provider: Providers.GOOGLE,
         },
       ],
