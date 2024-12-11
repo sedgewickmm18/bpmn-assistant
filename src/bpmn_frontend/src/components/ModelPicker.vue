@@ -11,33 +11,52 @@
 </template>
 
 <script>
+const Models = Object.freeze({
+  GPT_4O_MINI: "gpt-4o-mini",
+  GPT_4O: "gpt-4o",
+  HAIKU_3_5: "claude-3-5-haiku-20241022",
+  SONNET_3_5: "claude-3-5-sonnet-20241022",
+  GEMINI_1_5_FLASH: "gemini-1.5-flash",
+  GEMINI_1_5_PRO: "gemini-1.5-pro",
+});
+
+const Providers = Object.freeze({
+  OPENAI: "openai",
+  ANTHROPIC: "anthropic",
+  GOOGLE: "google",
+});
+
 export default {
   name: "ModelPicker",
   data() {
     return {
       selectedModel: "",
       models: [
-        { value: "gpt-4o-mini", title: "GPT-4o mini", provider: "openai" },
-        { value: "gpt-4o-2024-08-06", title: "GPT-4o", provider: "openai" },
         {
-          value: "claude-3-haiku-20240307",
-          title: "Claude 3 Haiku",
-          provider: "anthropic",
+          value: Models.GPT_4O_MINI,
+          title: "GPT-4o mini",
+          provider: Providers.OPENAI,
+        },
+        { value: Models.GPT_4O, title: "GPT-4o", provider: Providers.OPENAI },
+        {
+          value: Models.HAIKU_3_5,
+          title: "Claude 3.5 Haiku",
+          provider: Providers.ANTHROPIC,
         },
         {
-          value: "claude-3-5-sonnet-20240620",
+          value: Models.SONNET_3_5,
           title: "Claude 3.5 Sonnet",
-          provider: "anthropic",
+          provider: Providers.ANTHROPIC,
         },
         {
-          value: "gemini-1.5-flash",
+          value: Models.GEMINI_1_5_FLASH,
           title: "Gemini 1.5 Flash",
-          provider: "google",
+          provider: Providers.GOOGLE,
         },
         {
-          value: "gemini-1.5-pro-exp-0801",
+          value: Models.GEMINI_1_5_PRO,
           title: "Gemini 1.5 Pro",
-          provider: "google",
+          provider: Providers.GOOGLE,
         },
       ],
       availableProviders: [],
@@ -75,10 +94,12 @@ export default {
           (provider) => data[provider]
         );
 
-        if (this.availableProviders.includes("openai")) {
-          this.onModelChange("gpt-4o-mini");
-        } else if (this.availableProviders.includes("anthropic")) {
-          this.onModelChange("claude-3-5-sonnet-20240620");
+        if (this.availableProviders.includes(Providers.OPENAI)) {
+          this.onModelChange(Models.GPT_4O);
+        } else if (this.availableProviders.includes(Providers.ANTHROPIC)) {
+          this.onModelChange(Models.SONNET_3_5);
+        } else if (this.availableProviders.includes(Providers.GOOGLE)) {
+          this.onModelChange(Models.GEMINI_1_5_PRO);
         }
       } catch (error) {
         console.error("Error fetching available providers", error);
