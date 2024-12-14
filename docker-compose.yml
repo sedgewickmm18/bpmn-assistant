@@ -3,7 +3,7 @@ services:
   bpmn_assistant:
     build:
       context: .
-      dockerfile: bpmn_assistant.Dockerfile
+      dockerfile: ./src/bpmn_assistant/Dockerfile
     ports:
         - "8000:8000"
     env_file:
@@ -14,7 +14,7 @@ services:
   bpmn_layout_server:
     build:
       context: .
-      dockerfile: bpmn_layout_server.Dockerfile
+      dockerfile: ./src/bpmn_layout_server/Dockerfile
     ports:
       - "3001:3001"
     networks:
@@ -23,7 +23,7 @@ services:
   bpmn_frontend:
     build:
       context: .
-      dockerfile: bpmn_frontend.Dockerfile
+      dockerfile: ./src/bpmn_frontend/Dockerfile
     ports:
       - "8080:80"
     depends_on:

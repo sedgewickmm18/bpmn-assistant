@@ -10,7 +10,7 @@ COPY uv.lock /app/
 RUN pip install --no-cache-dir uv
 
 # Copy the source code early to ensure folder structure exists for uv sync
-COPY /src/bpmn_assistant /app/src/bpmn_assistant
+COPY ./src/bpmn_assistant /app/src/bpmn_assistant
 
 # Install dependencies
 RUN uv sync
