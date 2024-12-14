@@ -6,8 +6,17 @@ build-backend = "setuptools.build_meta"
 name = "bpmn_assistant"
 version = "0.1.0"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
+dependencies = [
+    "anthropic>=0.40.0",
+    "fastapi>=0.115.6",
+    "google-generativeai>=0.8.3",
+    "openai>=1.57.4",
+    "pydantic>=2.10.3",
+    "python-dotenv>=1.0.1",
+    "uvicorn>=0.33.0",
+]
 
 [tool.setuptools]
 package-dir = { "" = "src" }

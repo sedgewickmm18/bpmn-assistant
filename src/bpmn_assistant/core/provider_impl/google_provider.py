@@ -1,10 +1,10 @@
 import json
-from typing import Generator, Any
+from typing import Any, Generator
 
 import google.generativeai as genai  # type: ignore
 
 from bpmn_assistant.config import logger
-from bpmn_assistant.core.enums import OutputMode, GoogleModels, MessageRole
+from bpmn_assistant.core.enums import GoogleModels, MessageRole, OutputMode
 from bpmn_assistant.core.llm_provider import LLMProvider
 
 
