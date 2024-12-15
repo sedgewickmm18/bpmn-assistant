@@ -53,9 +53,13 @@
           v-model="currentInput"
           :disabled="isLoading"
           :counter="10000"
-          rows="6"
+          rows="4"
           @keydown.enter.prevent="handleKeyDown"
-          class="mx-2"
+          hide-details
+          class="input-textarea"
+          density="comfortable"
+          variant="outlined"
+          bg-color="white"
         >
         </v-textarea>
         <v-btn
@@ -64,7 +68,8 @@
           color="primary"
           class="send-button"
           icon="mdi-send"
-          density="comfortable"
+          variant="text"
+          size="small"
         >
         </v-btn>
       </div>
@@ -355,8 +360,7 @@ export default {
 .message-container {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 10px;
-  max-height: calc(100vh - 300px); /* Adjust this value as needed */
+  padding: 16px;
 }
 
 .message-list {
@@ -366,15 +370,25 @@ export default {
 
 .input-area {
   margin-top: auto;
-  padding: 10px;
+  padding: 16px;
+  background-color: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .input-wrapper {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+}
+
+.input-textarea {
+  flex-grow: 1;
 }
 
 .send-button {
-  margin-bottom: 90px;
+  position: absolute;
+  right: 8px;
+  top: 8px;
 }
 </style>
