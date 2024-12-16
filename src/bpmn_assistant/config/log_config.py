@@ -21,7 +21,7 @@ class CustomFormatter(logging.Formatter):
 
 def setup_logger(
     enable_console: bool = True,
-    enable_file: bool = False,
+    enable_file: bool = True,
     disable_logging: bool = False,
 ) -> None:
     logger = logging.getLogger()
@@ -52,5 +52,5 @@ def setup_logger(
             backupCount=7,
         )
         file_handler.setFormatter(formatter)
-        file_handler.setLevel(logging.INFO)
+        file_handler.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
