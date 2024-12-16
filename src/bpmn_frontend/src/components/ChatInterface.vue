@@ -163,12 +163,17 @@ export default {
       }
     },
     async handleMessageSubmit() {
-      if (!this.currentInput.trim() || this.currentInput.length > 10000) {
+      if (!this.currentInput.trim()) {
         return;
       }
 
       if (!this.selectedModel) {
         alert("You need to select a model first.");
+        return;
+      }
+
+      if (this.currentInput.length > 10000) {
+        alert("Message is too long. Please keep it under 10,000 characters.");
         return;
       }
 
