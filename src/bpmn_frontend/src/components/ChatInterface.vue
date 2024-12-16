@@ -2,7 +2,15 @@
   <div class="chat-interface">
     <div class="sticky-top">
       <div class="d-flex align-center justify-space-between pa-2 gap-4">
-        <span class="text-h6 mb-0">BPMN Assistant</span>
+        <div class="d-flex align-center">
+          <v-icon
+            icon="mdi-chart-timeline-variant"
+            color="primary"
+            size="x-large"
+            class="mr-2"
+          />
+          <span class="app-title">BPMN Assistant</span>
+        </div>
         <ModelPicker @select-model="setSelectedModel" />
       </div>
     </div>
@@ -348,6 +356,8 @@ export default {
 </script>
 
 <style scoped>
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@500&display=swap");
+
 .chat-interface {
   display: flex;
   flex-direction: column;
@@ -398,5 +408,14 @@ export default {
   position: absolute;
   right: 8px;
   top: 8px;
+}
+
+.app-title {
+  font-family: "Outfit", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  background: linear-gradient(45deg, var(--v-primary-base), #666);
+  margin-bottom: 0;
 }
 </style>
