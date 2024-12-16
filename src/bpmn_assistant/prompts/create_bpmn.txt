@@ -36,6 +36,8 @@ If a branch has an empty "path", it leads to the first element after the exclusi
 If the branch does not lead to the next element in the process (for example, it goes back to a previous element), specify the next element id.
 If the branch leads to the next element in the process, do not specify the next element id.
 If the process needs to end under a specific condition, you must explicitly include an end event in that branch's "path". If no end event is provided, the process will automatically continue to the next task in the sequence.
+If the process description does not explicitly mention the 'else' branch or specify the outcome for an unmet condition, assume it leads to an end event.
+
 
 ```json
 {

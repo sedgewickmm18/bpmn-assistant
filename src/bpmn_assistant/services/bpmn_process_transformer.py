@@ -38,6 +38,24 @@ class BpmnProcessTransformer:
         elements = []
         flows = []
 
+        def add_flow(source_ref, target_ref, flow_id=None, condition=None):
+            """
+            Helper function to append a flow to the flows list.
+            """
+            for flow in flows:
+                if flow["sourceRef"] == source_ref and flow["targetRef"] == target_ref:
+                    return
+
+            flow_id = flow_id or f"{source_ref}-{target_ref}"
+            flows.append(
+                {
+                    "id": flow_id,
+                    "sourceRef": source_ref,
+                    "targetRef": target_ref,
+                    "condition": condition,
+                }
+            )
+
         def handle_exclusive_gateway(
             element: dict, next_element_id: Optional[str] = None
         ) -> Optional[str]:
@@ -58,13 +76,10 @@ class BpmnProcessTransformer:
                 if not branch.get("path"):
                     # Connect the exclusive gateway to the next element in the process
                     if next_element_id:
-                        flows.append(
-                            {
-                                "id": f"{element['id']}-{next_element_id}",
-                                "sourceRef": element["id"],
-                                "targetRef": next_element_id,
-                                "condition": branch.get("condition", None),
-                            }
+                        add_flow(
+                            element["id"],
+                            next_element_id,
+                            condition=branch.get("condition", None),
                         )
                     continue  # Skip further processing for empty branches
 
@@ -81,14 +96,7 @@ class BpmnProcessTransformer:
                         source_ref = branch_structure["elements"][-1]["id"]
                         condition = None
 
-                    flows.append(
-                        {
-                            "id": f"{source_ref}-{branch['next']}",
-                            "sourceRef": source_ref,
-                            "targetRef": branch["next"],
-                            "condition": condition,
-                        }
-                    )
+                    add_flow(source_ref, branch["next"], condition=condition)
 
                 # Add the flow from the exclusive gateway to the first element in the branch
                 first_element = (
@@ -97,13 +105,10 @@ class BpmnProcessTransformer:
                     else None
                 )
                 if first_element:
-                    flows.append(
-                        {
-                            "id": f"{element['id']}-{first_element['id']}",
-                            "sourceRef": element["id"],
-                            "targetRef": first_element["id"],
-                            "condition": branch["condition"],
-                        }
+                    add_flow(
+                        element["id"],
+                        first_element["id"],
+                        condition=branch["condition"],
                     )
 
             return join_gateway_id
@@ -120,31 +125,17 @@ class BpmnProcessTransformer:
             )
 
             for branch in element["branches"]:
-                branch_structure = self.transform(branch)
+                branch_structure = self.transform(branch, join_gateway_id)
                 elements.extend(branch_structure["elements"])
                 flows.extend(branch_structure["flows"])
 
                 # Add the flow from the parallel gateway to the first element in the branch
                 first_element = branch_structure["elements"][0]
-                flows.append(
-                    {
-                        "id": f"{element['id']}-{first_element['id']}",
-                        "sourceRef": element["id"],
-                        "targetRef": first_element["id"],
-                        "condition": None,
-                    }
-                )
+                add_flow(element["id"], first_element["id"])
 
                 # Add the flow from the last element in the branch to the join gateway
                 last_element = branch_structure["elements"][-1]
-                flows.append(
-                    {
-                        "id": f"{last_element['id']}-{join_gateway_id}",
-                        "sourceRef": last_element["id"],
-                        "targetRef": join_gateway_id,
-                        "condition": None,
-                    }
-                )
+                add_flow(last_element["id"], join_gateway_id)
 
             return join_gateway_id
 
@@ -168,37 +159,16 @@ class BpmnProcessTransformer:
 
                 # Connect the join gateway to the next element in the process
                 if join_gateway_id and next_element_id:
-                    flows.append(
-                        {
-                            "id": f"{join_gateway_id}-{next_element_id}",
-                            "sourceRef": join_gateway_id,
-                            "targetRef": next_element_id,
-                            "condition": None,
-                        }
-                    )
+                    add_flow(join_gateway_id, next_element_id)
             elif element["type"] == "parallelGateway":
                 join_gateway_id = handle_parallel_gateway(element)
 
                 # Connect the join gateway to the next element in the process
                 if next_element_id:
-                    flows.append(
-                        {
-                            "id": f"{join_gateway_id}-{next_element_id}",
-                            "sourceRef": join_gateway_id,
-                            "targetRef": next_element_id,
-                            "condition": None,
-                        }
-                    )
+                    add_flow(join_gateway_id, next_element_id)
             elif next_element_id and element["type"] != "endEvent":
                 # Add the flow between the current element and the next element in the process
-                flows.append(
-                    {
-                        "id": f"{element['id']}-{next_element_id}",
-                        "sourceRef": element["id"],
-                        "targetRef": next_element_id,
-                        "condition": None,
-                    }
-                )
+                add_flow(element["id"], next_element_id)
 
         # Add incoming and outgoing flows to each element
         for element in elements:
