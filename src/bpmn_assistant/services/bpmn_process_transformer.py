@@ -54,6 +54,20 @@ class BpmnProcessTransformer:
                 )
 
             for branch in element["branches"]:
+
+                if not branch.get("path"):
+                    # Connect the exclusive gateway to the next element in the process
+                    if next_element_id:
+                        flows.append(
+                            {
+                                "id": f"{element['id']}-{next_element_id}",
+                                "sourceRef": element["id"],
+                                "targetRef": next_element_id,
+                                "condition": branch.get("condition", None),
+                            }
+                        )
+                    continue  # Skip further processing for empty branches
+
                 branch_structure = self.transform(
                     branch["path"], join_gateway_id or next_element_id
                 )
@@ -175,7 +189,7 @@ class BpmnProcessTransformer:
                             "condition": None,
                         }
                     )
-            elif next_element_id:
+            elif next_element_id and element["type"] != "endEvent":
                 # Add the flow between the current element and the next element in the process
                 flows.append(
                     {

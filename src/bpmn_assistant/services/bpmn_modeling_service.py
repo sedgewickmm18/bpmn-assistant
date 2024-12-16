@@ -1,3 +1,4 @@
+import json
 import traceback
 from importlib import resources
 
@@ -8,7 +9,7 @@ from bpmn_assistant.services.process_editing import (
     BpmnEditorService,
     define_change_request,
 )
-from bpmn_assistant.utils import prepare_prompt, message_history_to_string
+from bpmn_assistant.utils import message_history_to_string, prepare_prompt
 
 
 class BpmnModelingService:
@@ -46,8 +47,12 @@ class BpmnModelingService:
             response = llm_facade.call(prompt)
 
             try:
-                self._validate_bpmn(response["process"])
-                return response["process"]  # Return the process if it's valid
+                process = response["process"]
+                self._validate_bpmn(process)
+                logger.debug(
+                    f"Generated BPMN process:\n{json.dumps(process, indent=2)}"
+                )
+                return process  # Return the process if it's valid
             except Exception as e:
                 error_type = (
                     "LLM call failed" if response is None else "Invalid process"

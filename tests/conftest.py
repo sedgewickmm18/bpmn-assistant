@@ -4,7 +4,7 @@ import pytest
 from dotenv import load_dotenv
 
 from bpmn_assistant.core import LLMFacade, MessageItem
-from bpmn_assistant.core.enums import Provider, AnthropicModels, OpenAIModels
+from bpmn_assistant.core.enums import AnthropicModels, OpenAIModels, Provider
 from tests.fixtures.bpmn_loader import load_bpmn
 
 
@@ -12,7 +12,7 @@ from tests.fixtures.bpmn_loader import load_bpmn
 def anthropic_facade():
     load_dotenv(override=True)
     api_key = os.getenv("ANTHROPIC_API_KEY")
-    return LLMFacade(Provider.ANTHROPIC, api_key, AnthropicModels.HAIKU.value)
+    return LLMFacade(Provider.ANTHROPIC, api_key, AnthropicModels.HAIKU_3_5.value)
 
 
 @pytest.fixture
@@ -47,10 +47,49 @@ def empty_gateway_path_process():
                         }
                     ],
                 },
-                {"condition": "Condition B", "path": [], "next": "end"},
+                {"condition": "Condition B", "path": []},
             ],
         },
         {"type": "endEvent", "id": "end"},
+    ]
+
+
+@pytest.fixture
+def eg_end_event_in_path_process():
+    """
+    Description: A process that contains an exclusive gateway with an end event in one of the paths.
+    """
+    return [
+        {"type": "startEvent", "id": "start"},
+        {
+            "type": "exclusiveGateway",
+            "id": "exclusive1",
+            "label": "Decision Point",
+            "has_join": False,
+            "branches": [
+                {
+                    "condition": "Condition A",
+                    "path": [
+                        {
+                            "type": "task",
+                            "id": "task1",
+                            "label": "Perform the first task",
+                        }
+                    ],
+                },
+                {
+                    "condition": "Condition B",
+                    "path": [
+                        {
+                            "type": "endEvent",
+                            "id": "end1",
+                        }
+                    ],
+                },
+            ],
+        },
+        {"type": "task", "id": "task2", "label": "Perform the second task"},
+        {"type": "endEvent", "id": "end2"},
     ]
 
 
