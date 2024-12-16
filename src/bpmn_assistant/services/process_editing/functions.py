@@ -2,11 +2,12 @@ from copy import deepcopy
 from typing import Optional
 
 from bpmn_assistant.core.exceptions import (
-    ElementNotFoundException,
     ElementAlreadyExistsError,
+    ElementNotFoundException,
     GatewayUpdateError,
 )
-from .helpers import find_position, get_all_ids, find_branch_position
+
+from .helpers import find_branch_position, find_position, get_all_ids
 
 
 def delete_element(process: list[dict], element_id: str) -> dict:
@@ -39,6 +40,7 @@ def delete_element(process: list[dict], element_id: str) -> dict:
 
 
 def redirect_branch(process: list[dict], branch_condition: str, next_id: str) -> dict:
+    # FIXME: Two branches can have the same condition in different gateways
     position = find_branch_position(process, branch_condition)
 
     process_copy = deepcopy(process)
