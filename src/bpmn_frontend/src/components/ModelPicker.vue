@@ -16,7 +16,6 @@ const Models = Object.freeze({
   GPT_4O: "gpt-4o",
   HAIKU_3_5: "claude-3-5-haiku-20241022",
   SONNET_3_5: "claude-3-5-sonnet-20241022",
-  GEMINI_1_5_FLASH: "gemini-1.5-flash",
   GEMINI_1_5_PRO: "gemini-1.5-pro",
   GEMINI_2_FLASH: "gemini-2.0-flash-exp",
 });
@@ -50,18 +49,13 @@ export default {
           provider: Providers.ANTHROPIC,
         },
         {
-          value: Models.GEMINI_1_5_FLASH,
-          title: "Gemini 1.5 Flash",
+          value: Models.GEMINI_2_FLASH,
+          title: "Gemini 2.0 Flash",
           provider: Providers.GOOGLE,
         },
         {
           value: Models.GEMINI_1_5_PRO,
           title: "Gemini 1.5 Pro",
-          provider: Providers.GOOGLE,
-        },
-        {
-          value: Models.GEMINI_2_FLASH,
-          title: "Gemini 2.0 Flash",
           provider: Providers.GOOGLE,
         },
       ],

@@ -78,9 +78,8 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 ### Google
 
-* Gemini 1.5 Flash
-* Gemini 1.5 Pro
 * Gemini 2.0 Flash
+* Gemini 1.5 Pro
 
 ## Screenshots
 
