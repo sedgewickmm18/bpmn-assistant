@@ -172,8 +172,8 @@ export default {
         return;
       }
 
-      if (this.currentInput.length > 10000) {
-        alert("Message is too long. Please keep it under 10,000 characters.");
+      if (this.currentInput.length > 20000) {
+        alert("Message is too long. Please keep it under 20,000 characters.");
         return;
       }
 
