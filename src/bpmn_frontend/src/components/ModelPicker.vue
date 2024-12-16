@@ -1,12 +1,15 @@
 <template>
   <v-select
-    label="Model"
+    class="model-picker"
+    placeholder="Select model"
     density="compact"
     :items="availableModels"
     :modelValue="selectedModel"
     @update:modelValue="onModelChange"
+    hide-details
     :list-props="{ density: 'compact' }"
-    no-data-text="Please provide API keys to access models"
+    no-data-text="Please provide API keys"
+    variant="outlined"
   ></v-select>
 </template>
 
@@ -111,3 +114,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.model-picker {
+  max-width: 200px;
+}
+</style>

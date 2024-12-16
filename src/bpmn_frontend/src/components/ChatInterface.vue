@@ -1,8 +1,10 @@
 <template>
   <div class="chat-interface">
     <div class="sticky-top">
-      <p class="text-h6 text-center mb-2">BPMN Assistant</p>
-      <ModelPicker @select-model="setSelectedModel" />
+      <div class="d-flex align-center justify-space-between pa-2 gap-4">
+        <span class="text-h6 mb-0">BPMN Assistant</span>
+        <ModelPicker @select-model="setSelectedModel" />
+      </div>
     </div>
 
     <div class="message-container">
@@ -359,7 +361,8 @@ export default {
   top: 0;
   background-color: white;
   z-index: 1;
-  padding: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .message-container {
