@@ -74,11 +74,13 @@ class BpmnProcessTransformer:
             for branch in element["branches"]:
 
                 if not branch.get("path"):
-                    # Connect the exclusive gateway to the next element in the process
-                    if next_element_id:
+                    # Connect the exclusive gateway either to the next element in the process
+                    # or to the branch's "next" element if specified
+                    target_ref = branch.get("next", next_element_id)
+                    if target_ref:
                         add_flow(
                             element["id"],
-                            next_element_id,
+                            target_ref,
                             condition=branch.get("condition", None),
                         )
                     continue  # Skip further processing for empty branches
