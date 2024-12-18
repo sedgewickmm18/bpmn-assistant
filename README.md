@@ -61,6 +61,7 @@ docker-compose up --build
     - [OpenAI API key](https://platform.openai.com/docs/quickstart)
     - [Anthropic API key](https://console.anthropic.com/)
     - [Google AI Studio (Gemini) API key](https://aistudio.google.com/app/apikey)
+    - [Fireworks AI API key](https://docs.fireworks.ai/getting-started/quickstart)
 
 Note: You can use any combination of the API keys above, but at least one is required to use the app.
 
@@ -80,6 +81,10 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 * Gemini 2.0 Flash
 * Gemini 1.5 Pro
+
+### Fireworks AI
+
+* Llama 3.3 70B Instruct
 
 ## Screenshots
 

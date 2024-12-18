@@ -1,8 +1,10 @@
 import json
-from typing import Generator, Any
+from typing import Any, Generator
+
+from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
-from bpmn_assistant.core.enums import OutputMode, Provider, MessageRole
+from bpmn_assistant.core.enums import MessageRole, OutputMode, Provider
 from bpmn_assistant.core.llm_provider import LLMProvider
 from bpmn_assistant.core.provider_factory import ProviderFactory
 
@@ -35,7 +37,11 @@ class LLMFacade:
         self.messages = self.provider.get_initial_messages()
 
     def call(
-        self, prompt: str, max_tokens: int = 1000, temperature: float = 0.3
+        self,
+        prompt: str,
+        max_tokens: int = 1000,
+        temperature: float = 0.3,
+        structured_output: BaseModel | None = None,
     ) -> str | dict[str, Any]:
         """
         Call the LLM model with the given prompt.
@@ -43,7 +49,12 @@ class LLMFacade:
         logger.info(f"Calling LLM: {self.model}")
 
         response = self.provider.call(
-            self.model, prompt, self.messages, max_tokens, temperature
+            self.model,
+            prompt,
+            self.messages,
+            max_tokens,
+            temperature,
+            structured_output,
         )
 
         # Append the response to the message history in case the JSON is invalid and

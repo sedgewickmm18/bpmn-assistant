@@ -21,12 +21,15 @@ const Models = Object.freeze({
   SONNET_3_5: "claude-3-5-sonnet-20241022",
   GEMINI_1_5_PRO: "gemini-1.5-pro",
   GEMINI_2_FLASH: "gemini-2.0-flash-exp",
+  LLAMA_3_3_70B:
+    "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct",
 });
 
 const Providers = Object.freeze({
   OPENAI: "openai",
   ANTHROPIC: "anthropic",
   GOOGLE: "google",
+  FIREWORKS_AI: "fireworks_ai",
 });
 
 export default {
@@ -60,6 +63,11 @@ export default {
           value: Models.GEMINI_1_5_PRO,
           title: "Gemini 1.5 Pro",
           provider: Providers.GOOGLE,
+        },
+        {
+          value: Models.LLAMA_3_3_70B,
+          title: "Llama 3.3 70B",
+          provider: Providers.FIREWORKS_AI,
         },
       ],
       availableProviders: [],
@@ -103,6 +111,8 @@ export default {
           this.onModelChange(Models.SONNET_3_5);
         } else if (this.availableProviders.includes(Providers.GOOGLE)) {
           this.onModelChange(Models.GEMINI_1_5_PRO);
+        } else if (this.availableProviders.includes(Providers.FIREWORKS_AI)) {
+          this.onModelChange(Models.LLAMA_3_3_70B);
         }
       } catch (error) {
         console.error("Error fetching available providers", error);

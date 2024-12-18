@@ -2,6 +2,7 @@ import json
 from typing import Any, Generator
 
 import google.generativeai as genai  # type: ignore
+from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core.enums import GoogleModels, MessageRole, OutputMode
@@ -20,6 +21,7 @@ class GoogleProvider(LLMProvider):
         messages: list[dict[str, str]],
         max_tokens: int,
         temperature: float,
+        structured_output: BaseModel | None = None,
     ) -> str | dict[str, Any]:
         """
         Implementation of the Google Gemini API call.

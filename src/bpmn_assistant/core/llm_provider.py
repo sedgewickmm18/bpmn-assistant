@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Generator, Any
+from pydantic import BaseModel
 
 from bpmn_assistant.core.enums import MessageRole
 
@@ -13,6 +14,7 @@ class LLMProvider(ABC):
         messages: list[dict[str, str]],
         max_tokens: int,
         temperature: float,
+        structured_output: BaseModel | None = None,
     ) -> str | dict[str, Any]:
         pass
 

@@ -3,6 +3,7 @@ from typing import Generator, Any
 
 from anthropic import Anthropic
 from anthropic.types import TextBlock
+from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core.enums import AnthropicModels, OutputMode, MessageRole
@@ -21,6 +22,7 @@ class AnthropicProvider(LLMProvider):
         messages: list[dict[str, str]],
         max_tokens: int,
         temperature: float,
+        structured_output: BaseModel | None = None,
     ) -> str | dict[str, Any]:
         """
         Implementation of the Anthropic API call.

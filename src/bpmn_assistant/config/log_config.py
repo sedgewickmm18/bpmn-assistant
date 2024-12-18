@@ -24,15 +24,17 @@ def setup_logger(
     enable_file: bool = True,
     disable_logging: bool = False,
 ) -> None:
-    logger = logging.getLogger()
-    logger.handlers.clear()
-    # Disable httpcore logging to avoid clutter
-    logging.getLogger("httpcore").setLevel(logging.INFO)
+
+    app_logger = logging.getLogger("bpmn_assistant")
+    app_logger.handlers.clear()
 
     if disable_logging:
-        logger.setLevel(logging.CRITICAL)
+        app_logger.setLevel(logging.CRITICAL)
     else:
-        logger.setLevel(logging.DEBUG)
+        app_logger.setLevel(logging.DEBUG)
+
+    # Set the logging level for the root logger to WARNING to suppress logs from external libraries
+    logging.getLogger().setLevel(logging.WARNING)
 
     formatter = CustomFormatter()
 
@@ -40,7 +42,7 @@ def setup_logger(
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
         console_handler.setLevel(logging.INFO)
-        logger.addHandler(console_handler)
+        app_logger.addHandler(console_handler)
 
     if enable_file:
         if not os.path.exists("logs"):
@@ -53,4 +55,4 @@ def setup_logger(
         )
         file_handler.setFormatter(formatter)
         file_handler.setLevel(logging.DEBUG)
-        logger.addHandler(file_handler)
+        app_logger.addHandler(file_handler)

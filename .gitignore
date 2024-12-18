@@ -189,3 +189,5 @@ restructured/
 logs/
 
 .vscode
+
+scratch.py
