@@ -85,28 +85,40 @@
       </div>
     </div>
 
-    <div class="d-flex justify-center">
-      <v-btn
-        class="mr-5"
-        @click="reset"
-        :disabled="isLoading || messages.length === 0"
-        color="blue-lighten-5"
-        density="compact"
-      >
-        New chat
-      </v-btn>
-      <v-btn
-        @click="onDownload"
-        :disabled="isLoading"
-        v-if="isDownloadReady"
-        color="red-lighten-5"
-        density="compact"
-      >
-        Download
-      </v-btn>
+    <div class="d-flex justify-center button-container">
+      <v-tooltip text="New chat" location="top">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            class="mr-2"
+            @click="reset"
+            :disabled="isLoading || messages.length === 0"
+            icon="mdi-refresh"
+            variant="text"
+            size="small"
+            color="blue"
+          >
+          </v-btn>
+        </template>
+      </v-tooltip>
+
+      <v-tooltip text="Download BPMN" v-if="isDownloadReady" location="top">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            @click="onDownload"
+            :disabled="isLoading"
+            icon="mdi-download"
+            variant="text"
+            size="small"
+            color="orange"
+          >
+          </v-btn>
+        </template>
+      </v-tooltip>
     </div>
 
-    <p class="text-caption text-center mt-4 mb-2">
+    <p class="text-caption text-center mt-2 mb-2">
       This application uses LLMs and may produce varying results.
     </p>
   </div>
@@ -417,5 +429,15 @@ export default {
   letter-spacing: 0.5px;
   background: linear-gradient(45deg, var(--v-primary-base), #666);
   margin-bottom: 0;
+}
+
+.button-container {
+  padding: 0 0 8px 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.button-container:hover {
+  opacity: 1;
 }
 </style>
