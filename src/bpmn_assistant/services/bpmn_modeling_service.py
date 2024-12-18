@@ -1,6 +1,5 @@
 import json
 import traceback
-from importlib import resources
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade, MessageItem
@@ -32,12 +31,9 @@ class BpmnModelingService:
         Returns:
             list: The BPMN process.
         """
-        prompt_template = resources.read_text(
-            "bpmn_assistant.prompts", "create_bpmn.txt"
-        )
-
         prompt = prepare_prompt(
-            prompt_template, message_history=message_history_to_string(message_history)
+            "create_bpmn.txt",
+            message_history=message_history_to_string(message_history),
         )
 
         attempts = 0

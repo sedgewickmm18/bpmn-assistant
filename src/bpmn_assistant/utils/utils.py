@@ -1,4 +1,5 @@
 import os
+from importlib import resources
 
 from dotenv import load_dotenv
 
@@ -13,16 +14,18 @@ from bpmn_assistant.core.enums import (
 )
 
 
-def prepare_prompt(prompt_template, **kwargs):
+def prepare_prompt(template_file: str, **kwargs) -> str:
     """
-    Replace the placeholders in the prompt template with the given values.
+    Read the prompt template from the given resource and replace the placeholders with the given values.
     Args:
-        prompt_template (str): The prompt template.
+        template_file (str): The template file name.
         **kwargs: Keyword arguments where keys are variable names (without '::')
                   and values are the replacement strings.
     Returns:
         str: The prompt
     """
+    prompt_template = resources.read_text("bpmn_assistant.prompts", template_file)
+
     prompt = prompt_template
 
     # Extract variables from the template

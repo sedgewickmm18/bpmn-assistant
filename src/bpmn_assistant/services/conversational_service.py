@@ -1,12 +1,11 @@
-from importlib import resources
-from typing import Optional, Generator
+from typing import Generator, Optional
 
 from bpmn_assistant.core import MessageItem
 from bpmn_assistant.core.enums import OutputMode
 from bpmn_assistant.utils import (
-    prepare_prompt,
     get_llm_facade,
     message_history_to_string,
+    prepare_prompt,
 )
 
 
@@ -28,21 +27,13 @@ class ConversationalService:
             Generator: A generator that yields the response
         """
         if not process:
-            prompt_template = resources.read_text(
-                "bpmn_assistant.prompts", "respond_to_query_no_process.txt"
-            )
-
             prompt = prepare_prompt(
-                prompt_template,
+                "respond_to_query_no_process.txt",
                 message_history=message_history_to_string(message_history),
             )
         else:
-            prompt_template = resources.read_text(
-                "bpmn_assistant.prompts", "respond_to_query.txt"
-            )
-
             prompt = prepare_prompt(
-                prompt_template,
+                "respond_to_query.txt",
                 message_history=message_history_to_string(message_history),
                 process=str(process),
             )
@@ -60,13 +51,8 @@ class ConversationalService:
         Returns:
             Generator: A generator that yields the final comment
         """
-        # TODO: prepare_prompt should take care of reading the template
-        prompt_template = resources.read_text(
-            "bpmn_assistant.prompts", "make_final_comment.txt"
-        )
-
         prompt = prepare_prompt(
-            prompt_template,
+            "make_final_comment.txt",
             message_history=message_history_to_string(message_history),
             process=str(process),
         )

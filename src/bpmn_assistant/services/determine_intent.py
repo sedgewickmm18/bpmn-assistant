@@ -1,5 +1,4 @@
 import traceback
-from importlib import resources
 
 from pydantic import BaseModel
 
@@ -42,12 +41,8 @@ def determine_intent(
     Returns:
         dict: The response containing the intent
     """
-    prompt_template = resources.read_text(
-        "bpmn_assistant.prompts", "determine_intent.txt"
-    )
-
     prompt = prepare_prompt(
-        prompt_template,
+        "determine_intent.txt",
         message_history=message_history_to_string(message_history),
     )
 

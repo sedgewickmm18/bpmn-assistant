@@ -1,13 +1,11 @@
-from importlib import resources
-
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade
 from bpmn_assistant.core.exceptions import ProcessException
 from bpmn_assistant.services.process_editing import (
-    delete_element,
-    redirect_branch,
     add_element,
+    delete_element,
     move_element,
+    redirect_branch,
     update_element,
 )
 from bpmn_assistant.utils import prepare_prompt
@@ -107,10 +105,8 @@ class BpmnEditorService:
         return res["process"]
 
     def _get_initial_edit_proposal(self, max_retries: int = 3) -> dict:
-        prompt_template = resources.read_text("bpmn_assistant.prompts", "edit_bpmn.txt")
-
         prompt = prepare_prompt(
-            prompt_template,
+            "edit_bpmn.txt",
             process=str(self.process),
             change_request=self.change_request,
         )
@@ -150,12 +146,8 @@ class BpmnEditorService:
         Returns:
             The intermediate edit proposal (function and arguments)
         """
-        prompt_template = resources.read_text(
-            "bpmn_assistant.prompts", "edit_bpmn_intermediate_step.txt"
-        )
-
         prompt = prepare_prompt(
-            prompt_template,
+            "edit_bpmn_intermediate_step.txt",
             process=str(updated_process),
         )
 
