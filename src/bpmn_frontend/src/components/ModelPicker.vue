@@ -24,6 +24,8 @@ const Models = Object.freeze({
   LLAMA_3_3_70B:
     "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct",
   QWEN_2_5_72B: "fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct",
+  QWQ_32B_PREVIEW:
+    "fireworks_ai/accounts/fireworks/models/qwen-qwq-32b-preview",
 });
 
 const Providers = Object.freeze({
@@ -73,6 +75,11 @@ export default {
         {
           value: Models.QWEN_2_5_72B,
           title: "Qwen 2.5 72B",
+          provider: Providers.FIREWORKS_AI,
+        },
+        {
+          value: Models.QWQ_32B_PREVIEW,
+          title: "QwQ 32B Preview",
           provider: Providers.FIREWORKS_AI,
         },
       ],
