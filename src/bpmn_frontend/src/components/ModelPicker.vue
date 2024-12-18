@@ -133,6 +133,6 @@ export default {
 
 <style scoped>
 .model-picker {
-  max-width: 200px;
+  width: 200px;
 }
 </style>

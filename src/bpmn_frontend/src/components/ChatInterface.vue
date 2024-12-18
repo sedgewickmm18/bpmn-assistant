@@ -11,7 +11,44 @@
           />
           <span class="app-title">BPMN Assistant</span>
         </div>
-        <ModelPicker @select-model="setSelectedModel" />
+        <div class="d-flex align-center">
+          <v-tooltip text="New chat" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                @click="reset"
+                :disabled="isLoading || messages.length === 0"
+                icon="mdi-refresh"
+                variant="text"
+                size="medium"
+                color="blue"
+                class="mr-5"
+              >
+              </v-btn>
+            </template>
+          </v-tooltip>
+
+          <v-tooltip
+            text="Download BPMN"
+            v-if="isDownloadReady"
+            location="bottom"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                @click="onDownload"
+                :disabled="isLoading"
+                icon="mdi-download"
+                variant="text"
+                size="medium"
+                color="orange"
+                class="mr-5"
+              >
+              </v-btn>
+            </template>
+          </v-tooltip>
+          <ModelPicker @select-model="setSelectedModel" />
+        </div>
       </div>
     </div>
 
@@ -83,39 +120,6 @@
         >
         </v-btn>
       </div>
-    </div>
-
-    <div class="d-flex justify-center button-container">
-      <v-tooltip text="New chat" location="top">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            class="mr-2"
-            @click="reset"
-            :disabled="isLoading || messages.length === 0"
-            icon="mdi-refresh"
-            variant="text"
-            size="small"
-            color="blue"
-          >
-          </v-btn>
-        </template>
-      </v-tooltip>
-
-      <v-tooltip text="Download BPMN" v-if="isDownloadReady" location="top">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            @click="onDownload"
-            :disabled="isLoading"
-            icon="mdi-download"
-            variant="text"
-            size="small"
-            color="orange"
-          >
-          </v-btn>
-        </template>
-      </v-tooltip>
     </div>
 
     <p class="text-caption text-center mt-2 mb-2">
@@ -429,15 +433,5 @@ export default {
   letter-spacing: 0.5px;
   background: linear-gradient(45deg, var(--v-primary-base), #666);
   margin-bottom: 0;
-}
-
-.button-container {
-  padding: 0 0 8px 0;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.button-container:hover {
-  opacity: 1;
 }
 </style>
