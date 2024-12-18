@@ -85,20 +85,17 @@ class BpmnProcessTransformer:
                         )
                     continue  # Skip further processing for empty branches
 
-                branch_structure = self.transform(
-                    branch["path"], join_gateway_id or next_element_id
-                )
+                branch_next = branch.get("next")
+
+                if branch_next:
+                    branch_structure = self.transform(branch["path"], branch_next)
+                else:
+                    branch_structure = self.transform(
+                        branch["path"], join_gateway_id or next_element_id
+                    )
+
                 elements.extend(branch_structure["elements"])
                 flows.extend(branch_structure["flows"])
-
-                if branch.get("next"):
-                    source_ref = element["id"]
-                    condition = branch["condition"]
-                    if branch_structure["elements"]:
-                        source_ref = branch_structure["elements"][-1]["id"]
-                        condition = None
-
-                    add_flow(source_ref, branch["next"], condition=condition)
 
                 # Add the flow from the exclusive gateway to the first element in the branch
                 first_element = (

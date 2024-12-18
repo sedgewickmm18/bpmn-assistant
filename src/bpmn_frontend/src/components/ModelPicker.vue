@@ -23,6 +23,7 @@ const Models = Object.freeze({
   GEMINI_2_FLASH: "gemini-2.0-flash-exp",
   LLAMA_3_3_70B:
     "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct",
+  QWEN_2_5_72B: "fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct",
 });
 
 const Providers = Object.freeze({
@@ -67,6 +68,11 @@ export default {
         {
           value: Models.LLAMA_3_3_70B,
           title: "Llama 3.3 70B",
+          provider: Providers.FIREWORKS_AI,
+        },
+        {
+          value: Models.QWEN_2_5_72B,
+          title: "Qwen 2.5 72B",
           provider: Providers.FIREWORKS_AI,
         },
       ],
