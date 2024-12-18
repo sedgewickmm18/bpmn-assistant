@@ -411,19 +411,12 @@ export default {
 
 .input-wrapper {
   display: flex;
-  align-items: flex-start;
-  gap: 0;
+  align-items: flex-end;
   position: relative;
 }
 
 .input-textarea {
   flex-grow: 1;
-}
-
-.send-button {
-  position: absolute;
-  right: 8px;
-  top: 8px;
 }
 
 .app-title {
