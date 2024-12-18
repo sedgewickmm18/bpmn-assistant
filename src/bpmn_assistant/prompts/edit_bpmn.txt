@@ -1,8 +1,11 @@
+The BPMN JSON representation uses a sequence of elements to describe the process. Each element is executed in order based on its position in the "process" array unless gateways (exclusive or parallel) specify branching paths.
+
 # Representation of various BPMN elements
 
 ## Tasks
 
 Specify the task type in the 'type' field. Only "task", "userTask" and "serviceTask" options are supported.
+Always try to specify the specific task type (e.g. 'userTask', 'serviceTask') instead of just 'task' if the task is performed by a user or an automated system.
 
 ```json
 {
@@ -25,11 +28,17 @@ Specify the event type in the 'type' field. Only "startEvent" and "endEvent" opt
 
 ## Gateways
 
+Gateways determine process flow based on conditions or parallel tasks.
+
 ### Exclusive gateway
 
-Each branch has a condition and a path of elements that are executed if the condition is met.
+Each branch must include a condition and an array of elements that are executed if the condition is met.
+If a branch has an empty "path", it leads to the first element after the exclusive gateway.
 If the branch does not lead to the next element in the process (for example, it goes back to a previous element), specify the next element id.
 If the branch leads to the next element in the process, do not specify the next element id.
+If the process needs to end under a specific condition, you must explicitly include an end event in that branch's "path". If no end event is provided, the process will automatically continue to the next task in the sequence.
+If the process description does not explicitly mention the 'else' branch or specify the outcome for an unmet condition, assume it leads to an end event.
+
 
 ```json
 {
@@ -41,12 +50,12 @@ If the branch leads to the next element in the process, do not specify the next 
         {
             "condition": String, // condition for the branch
             "path": [], // array of elements that are executed if the condition is met (can be empty)
-            "next": String | null, // OPTIONAL: ID of the next element if not following default sequence. Omit or set to null if following default sequence.
+            "next": String, // OPTIONAL: ID of the next element if not following default sequence. Omit or set to null if following default sequence.
         },
         {
             "condition": String,
             "path": [],
-            "next": String | null, // OPTIONAL: as above
+            "next": String, // OPTIONAL: as above
         },
         // ... more branches
     ],
@@ -54,6 +63,9 @@ If the branch leads to the next element in the process, do not specify the next 
 ```
 
 ### Parallel gateway
+
+Specify "branches" as an array of arrays, where each sub-array lists elements executed in parallel.
+A converging element is automatically generated to synchronize parallel branches. Therefore, there's no need to explicitly specify it.
 
 ```json
 {

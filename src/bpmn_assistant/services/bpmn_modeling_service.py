@@ -75,10 +75,11 @@ class BpmnModelingService:
     def edit_bpmn(
         self,
         llm_facade: LLMFacade,
+        text_llm_facade: LLMFacade,
         process: list[dict],
         message_history: list[MessageItem],
     ) -> list:
-        change_request = define_change_request(llm_facade, process, message_history)
+        change_request = define_change_request(text_llm_facade, process, message_history)
 
         bpmn_editor_service = BpmnEditorService(llm_facade, process, change_request)
 

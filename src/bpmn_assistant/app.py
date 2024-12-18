@@ -1,25 +1,23 @@
 from fastapi import FastAPI, HTTPException
-from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from starlette.middleware.cors import CORSMiddleware
 
 from bpmn_assistant.api.requests import (
     BpmnToJsonRequest,
+    ConversationalRequest,
     DetermineIntentRequest,
     ModifyBpmnRequest,
-    ConversationalRequest,
 )
 from bpmn_assistant.config import logger
+from bpmn_assistant.core.enums.output_modes import OutputMode
 from bpmn_assistant.services import (
+    BpmnJsonGenerator,
     BpmnModelingService,
-    determine_intent,
     BpmnXmlGenerator,
     ConversationalService,
-    BpmnJsonGenerator,
+    determine_intent,
 )
-from bpmn_assistant.utils import (
-    get_llm_facade,
-    get_available_providers,
-)
+from bpmn_assistant.utils import get_available_providers, get_llm_facade
 
 app = FastAPI()
 
@@ -78,13 +76,13 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     Modify the BPMN process based on the user query. If the request does not contain a BPMN JSON,
     then create a new BPMN process. Otherwise, edit the existing BPMN process.
     """
+    llm_facade = get_llm_facade(request.model)
+    text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT)
     try:
-        llm_facade = get_llm_facade(request.model)
-
         if request.process:
             logger.info("Editing the BPMN process...")
             process = bpmn_modeling_service.edit_bpmn(
-                llm_facade, request.process, request.message_history
+                llm_facade, text_llm_facade, request.process, request.message_history
             )
         else:
             logger.info("Creating a new BPMN process...")

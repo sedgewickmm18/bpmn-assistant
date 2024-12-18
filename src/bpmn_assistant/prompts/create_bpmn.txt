@@ -65,6 +65,7 @@ If the process description does not explicitly mention the 'else' branch or spec
 ### Parallel gateway
 
 Specify "branches" as an array of arrays, where each sub-array lists elements executed in parallel.
+A converging element is automatically generated to synchronize parallel branches. Therefore, there's no need to explicitly specify it.
 
 ```json
 {

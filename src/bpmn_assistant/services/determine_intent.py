@@ -55,7 +55,7 @@ def determine_intent(
         try:
             json_object = llm_facade.call(
                 prompt,
-                max_tokens=10,
+                max_tokens=20,
                 temperature=0.3,
                 structured_output=DetermineIntentResponse,
             )
