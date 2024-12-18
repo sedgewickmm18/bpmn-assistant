@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; flex-direction: row; height: 100vh">
-    <div style="flex: 3">
+    <div class="chat-container">
       <ChatInterface
         @bpmn-xml-received="handleBpmnXml"
         @bpmn-json-received="setBpmnJson"
@@ -11,7 +11,7 @@
     </div>
     <div
       id="canvas"
-      style="flex: 4; border: 2px solid gray"
+      class="canvas-container"
       @dragover.prevent
       @drop="handleDrop"
     ></div>
@@ -200,5 +200,23 @@ export default {
 <style>
 #canvas {
   margin: 10px;
+}
+
+.chat-container {
+  flex: 3;
+}
+
+.canvas-container {
+  flex: 4;
+  border: 2px solid gray;
+}
+
+@media (min-width: 1800px) {
+  .chat-container {
+    flex: 2;
+  }
+  .canvas-container {
+    flex: 5;
+  }
 }
 </style>
