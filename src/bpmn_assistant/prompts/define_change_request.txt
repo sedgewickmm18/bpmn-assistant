@@ -373,15 +373,8 @@ Textual description: "The process starts with a decision. If Option A is selecte
 
 The last user message indicates that the user wants to make a modification to the process.
 
-Based on the last user message, construct a detailed change request.
+Based on the last user message, construct a concise change request.
 
 The change request should include:
-1. A natural language description of the change.
+1. A short natural language description of the change.
 2. A breakdown of exactly which functions should be called to implement the change, specifying the required arguments for each function call.
-
-Example change requests:
-- "Update the label of task2 to 'Approve request'. Use the `update_element` function with the argument `{'id': 'task2', 'label': 'Approve request'}`."
-- "Remove the gateway with the ID 'gateway1'. Use the `delete_element` function with the argument `'gateway1'`."
-- "Add a task after task2. The new task should be a service task with the label 'Send email'. Use the `add_element` function with the arguments `{'type': 'service_task', 'label': 'Send email'}` and `after_id='task2'`."
-- "Move task3 to be before task1. Use the `move_element` function with the arguments `'task3'` and `before_id='task1'`."
-- "Redirect the 'Yes' branch of gateway1 to flow to task4. Use the `redirect_branch` function with the arguments `'Yes'` and `'task4'`."

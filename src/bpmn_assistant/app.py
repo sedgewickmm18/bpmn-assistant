@@ -9,6 +9,7 @@ from bpmn_assistant.api.requests import (
     ModifyBpmnRequest,
 )
 from bpmn_assistant.config import logger
+from bpmn_assistant.core.enums.models import OpenAIModels
 from bpmn_assistant.core.enums.output_modes import OutputMode
 from bpmn_assistant.services import (
     BpmnJsonGenerator,
@@ -56,13 +57,22 @@ def _available_providers() -> JSONResponse:
     return JSONResponse(content=providers)
 
 
+def replace_reasoning_model(model: str) -> str:
+    """
+    Returns GPT-4o if o1-preview is requested. Otherwise returns the original model.
+    """
+    return OpenAIModels.GPT_4O.value if model == OpenAIModels.O1.value else model
+
+
 @app.post("/determine_intent")
 async def _determine_intent(request: DetermineIntentRequest) -> JSONResponse:
     """
     Determine the intent of the user query
     """
     try:
-        llm_facade = get_llm_facade(request.model)
+        # TODO: fix once o1 API becomes available
+        model = replace_reasoning_model(request.model)
+        llm_facade = get_llm_facade(model)
         intent = determine_intent(llm_facade, request.message_history)
         return JSONResponse(content=intent)
     except Exception as e:
@@ -76,7 +86,9 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     Modify the BPMN process based on the user query. If the request does not contain a BPMN JSON,
     then create a new BPMN process. Otherwise, edit the existing BPMN process.
     """
-    llm_facade = get_llm_facade(request.model)
+    # TODO: fix once o1 API becomes available
+    model = replace_reasoning_model(request.model)
+    llm_facade = get_llm_facade(model)
     text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT)
     try:
         if request.process:
@@ -101,7 +113,10 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
 
 @app.post("/talk")
 async def _talk(request: ConversationalRequest) -> StreamingResponse:
-    conversational_service = ConversationalService(request.model)
+    # o1 is not needed here, and does not support streaming
+    model = replace_reasoning_model(request.model)
+
+    conversational_service = ConversationalService(model)
 
     if request.needs_to_be_final_comment:
         response_generator = conversational_service.make_final_comment(

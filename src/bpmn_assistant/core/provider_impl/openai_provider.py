@@ -36,13 +36,21 @@ class OpenAIProvider(LLMProvider):
             else {"type": "text"}
         )
 
-        response = self.client.chat.completions.create(
-            model=model,
-            response_format=response_format,
-            messages=messages,  # type: ignore[arg-type]
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+        params = {
+            "model": model,
+            "response_format": response_format,
+            "messages": messages,  # type: ignore[arg-type]
+        }
+
+        if model == OpenAIModels.O1.value:
+            logger.info("Using o1 model")
+            # https://platform.openai.com/docs/guides/reasoning#limitations
+            # constraining the max_completion_tokens can lead to empty responses
+        else:
+            params["max_tokens"] = max_tokens
+            params["temperature"] = temperature
+
+        response = self.client.chat.completions.create(**params)
 
         raw_output = response.choices[0].message.content
 
