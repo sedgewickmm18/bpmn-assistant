@@ -1,3 +1,7 @@
+from typing import Literal, Optional
+
+from pydantic import BaseModel
+
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade
 from bpmn_assistant.core.exceptions import ProcessException
@@ -9,6 +13,17 @@ from bpmn_assistant.services.process_editing import (
     update_element,
 )
 from bpmn_assistant.utils import prepare_prompt
+
+
+class EditProposal(BaseModel):
+    function: str
+    arguments: dict
+
+
+class IntermediateEditProposal(BaseModel):
+    function: str
+    arguments: dict
+    stop: Optional[Literal[True]] = None
 
 
 class BpmnEditorService:
@@ -105,33 +120,32 @@ class BpmnEditorService:
         return res["process"]
 
     def _get_initial_edit_proposal(self, max_retries: int = 3) -> dict:
+        """
+        Get an initial edit proposal from the LLM.
+        Args:
+            max_retries: The maximum number of retries to perform if the response is invalid
+        Returns:
+            The initial edit proposal (function and arguments)
+        """
+        attempts = 0
+
         prompt = prepare_prompt(
             "edit_bpmn.txt",
             process=str(self.process),
             change_request=self.change_request,
         )
 
-        response = self.llm_facade.call(prompt)
-        logger.info(f"Initial edit proposal: {response}")
-
-        attempts = 0
-
         while attempts < max_retries:
             attempts += 1
 
             try:
+                response = self.llm_facade.call(prompt, structured_output=EditProposal)
+                logger.info(f"Edit proposal: {response}")
                 self._validate_llm_response(response)
                 return response
             except ValueError as e:
-                error_message = str(e)
-                logger.warning(
-                    f"Validation error (attempt {attempts}): {error_message}"
-                )
-
-                new_prompt = f"Editing error: {error_message}. Please provide a new edit proposal."
-
-                response = self.llm_facade.call(new_prompt)
-                logger.info(f"New initial edit proposal: {response}")
+                logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
+                prompt = f"Editing error: {str(e)}. Please provide a new edit proposal."
 
         raise Exception("Max number of retries reached.")
 
@@ -144,33 +158,28 @@ class BpmnEditorService:
             updated_process: The updated BPMN process
             max_retries: The maximum number of retries to perform if the response is invalid
         Returns:
-            The intermediate edit proposal (function and arguments)
+            The intermediate edit proposal (function and arguments, or 'stop')
         """
         attempts = 0
+
+        prompt = prepare_prompt(
+            "edit_bpmn_intermediate_step.txt",
+            process=str(updated_process),
+        )
 
         while attempts < max_retries:
             attempts += 1
 
             try:
-
-                if attempts == 1:
-                    prompt = prepare_prompt(
-                        "edit_bpmn_intermediate_step.txt",
-                        process=str(updated_process),
-                    )
-                else:
-                    prompt = f"Editing error: {error_message}. Please provide a new edit proposal."
-
-                response = self.llm_facade.call(prompt)
+                response = self.llm_facade.call(
+                    prompt, structured_output=IntermediateEditProposal
+                )
                 logger.info(f"Intermediate edit proposal: {response}")
-
                 self._validate_llm_response(response, is_first_edit=False)
                 return response
             except ValueError as e:
-                error_message = str(e)
-                logger.warning(
-                    f"Validation error (attempt {attempts}): {error_message}"
-                )
+                logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
+                prompt = f"Editing error: {str(e)}. Please provide a new edit proposal."
 
         raise Exception("Max number of retries reached.")
 
