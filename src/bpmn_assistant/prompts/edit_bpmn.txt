@@ -364,13 +364,13 @@ Textual description: "The process starts with a decision. If Option A is selecte
 ```json
 {
   "function": "update_element",
-    "arguments": {
-        "new_element": {
-            "type": "task",
-            "id": "task1", // the id of the element to be updated
-            "label": "New task description"
-        }
-    }
+  "arguments": {
+      "new_element": {
+          "type": "task",
+          "id": "task1", // the id of the element to be updated
+          "label": "New task description"
+      }
+  }
 }
 ```
 
