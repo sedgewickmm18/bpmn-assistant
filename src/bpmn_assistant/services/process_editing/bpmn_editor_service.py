@@ -146,20 +146,24 @@ class BpmnEditorService:
         Returns:
             The intermediate edit proposal (function and arguments)
         """
-        prompt = prepare_prompt(
-            "edit_bpmn_intermediate_step.txt",
-            process=str(updated_process),
-        )
-
-        response = self.llm_facade.call(prompt)
-        logger.info(f"Intermediate edit proposal: {response}")
-
         attempts = 0
 
         while attempts < max_retries:
             attempts += 1
 
             try:
+
+                if attempts == 1:
+                    prompt = prepare_prompt(
+                        "edit_bpmn_intermediate_step.txt",
+                        process=str(updated_process),
+                    )
+                else:
+                    prompt = f"Editing error: {error_message}. Please provide a new edit proposal."
+
+                response = self.llm_facade.call(prompt)
+                logger.info(f"Intermediate edit proposal: {response}")
+
                 self._validate_llm_response(response, is_first_edit=False)
                 return response
             except ValueError as e:
@@ -167,11 +171,6 @@ class BpmnEditorService:
                 logger.warning(
                     f"Validation error (attempt {attempts}): {error_message}"
                 )
-
-                new_prompt = f"Editing error: {error_message}. Please provide a new edit proposal."
-
-                response = self.llm_facade.call(new_prompt)
-                logger.info(f"New intermediate edit proposal: {response}")
 
         raise Exception("Max number of retries reached.")
 
@@ -182,64 +181,62 @@ class BpmnEditorService:
         if not is_first_edit and "stop" in response:
             return True
 
-        if "function" not in response or "arguments" not in response:
-            msg = "Function call should contain 'function' and 'arguments' keys."
-            logger.error(msg)
-            raise ValueError(msg)
+        if (
+            "function" not in response or "arguments" not in response
+        ) and "stop" not in response:
+            raise ValueError(
+                "Function call should contain 'function' and 'arguments' keys, or a 'stop' key."
+            )
 
         function_to_call = response["function"]
         args = response["arguments"]
 
         if function_to_call == "delete_element":
             if "element_id" not in args:
-                self._log_raise("Arguments should contain 'element_id' key.")
+                raise ValueError("Arguments should contain 'element_id' key.")
             elif len(args) > 1:
-                self._log_raise("Arguments should contain only 'element_id' key.")
+                raise ValueError("Arguments should contain only 'element_id' key.")
         elif function_to_call == "redirect_branch":
             if "branch_condition" not in args or "next_id" not in args:
-                self._log_raise(
+                raise ValueError(
                     "Arguments should contain 'branch_condition' and 'next_id' keys."
                 )
             elif len(args) > 2:
-                self._log_raise(
+                raise ValueError(
                     "Arguments should contain only 'branch_condition' and 'next_id' keys."
                 )
         elif function_to_call == "add_element":
             if "element" not in args:
-                self._log_raise("Arguments should contain 'element' key.")
+                raise ValueError("Arguments should contain 'element' key.")
             elif "before_id" in args and "after_id" in args:
-                self._log_raise(
+                raise ValueError(
                     "Only one of 'before_id' and 'after_id' should be provided."
                 )
             elif "before_id" not in args and "after_id" not in args:
-                self._log_raise("Either 'before_id' or 'after_id' should be provided.")
+                raise ValueError("Either 'before_id' or 'after_id' should be provided.")
             elif len(args) > 2:
-                self._log_raise(
+                raise ValueError(
                     "Arguments should contain only 'element' and either 'before_id' or 'after_id' keys."
                 )
         elif function_to_call == "move_element":
             if "element_id" not in args:
-                self._log_raise("Arguments should contain 'element_id' key.")
+                raise ValueError("Arguments should contain 'element_id' key.")
             elif "before_id" in args and "after_id" in args:
-                self._log_raise(
+                raise ValueError(
                     "Only one of 'before_id' and 'after_id' should be provided."
                 )
             elif "before_id" not in args and "after_id" not in args:
-                self._log_raise("Either 'before_id' or 'after_id' should be provided.")
+                raise ValueError("Either 'before_id' or 'after_id' should be provided.")
             elif len(args) > 2:
-                self._log_raise(
+                raise ValueError(
                     "Arguments should contain only 'element_id' and either 'before_id' or 'after_id' keys."
                 )
         elif function_to_call == "update_element":
             if "new_element" not in args:
-                self._log_raise("Arguments should contain 'new_element' key.")
+                raise ValueError("Arguments should contain 'new_element' key.")
             elif len(args) > 1:
-                self._log_raise("Arguments should contain only 'new_element' key.")
+                raise ValueError("Arguments should contain only 'new_element' key.")
         else:
-            self._log_raise(f"Function '{function_to_call}' not found.")
+            raise ValueError(f"Function '{function_to_call}' not found.")
 
         return True
-
-    def _log_raise(self, msg: str) -> None:
-        logger.error(msg)
-        raise ValueError(msg)
