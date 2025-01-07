@@ -32,9 +32,7 @@ class FireworksAIProvider(LLMProvider):
             structured_output
             if structured_output is not None
             else (
-                {"type": "json_object"}
-                if self.output_mode == OutputMode.JSON
-                else {"type": "text"}
+                {"type": "json_object"} if self.output_mode == OutputMode.JSON else None
             )
         )
 

@@ -3,9 +3,7 @@ Updated process:
 ::process
 ```
 
-You may continue editing the process or finish.
-
-If you believe you have completed the changes necessary and want to stop editing the process, simply output the following JSON:
+If you believe you have completed the necessary change request and want to stop editing the process, output the following JSON:
 
 ```json
 {

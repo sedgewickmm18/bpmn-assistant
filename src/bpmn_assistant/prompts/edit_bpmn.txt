@@ -409,15 +409,17 @@ Textual description: "The process starts with a decision. If Option A is selecte
 
 ---
 
-# Your task
-
-The JSON representation of the process
+# The JSON representation of the process
 
 ```json
 ::process
 ```
 
-The requested change to the process: ::change_request
+# The requested change to the process
+
+```
+::change_request
+```
 
 Provide one function at a time to update the process, along with the arguments for the function call.
 
