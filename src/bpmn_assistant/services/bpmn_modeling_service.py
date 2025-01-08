@@ -3,12 +3,13 @@ import traceback
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade, MessageItem
-from bpmn_assistant.core.enums import BPMNElementType
 from bpmn_assistant.services.process_editing import (
-    BpmnEditorService,
+    BpmnEditingService,
     define_change_request,
 )
 from bpmn_assistant.utils import message_history_to_string, prepare_prompt
+
+from .validate_bpmn import validate_bpmn
 
 
 class BpmnModelingService:
@@ -44,7 +45,7 @@ class BpmnModelingService:
 
             try:
                 process = response["process"]
-                self._validate_bpmn(process)
+                validate_bpmn(process)
                 logger.debug(
                     f"Generated BPMN process:\n{json.dumps(process, indent=2)}"
                 )
@@ -79,70 +80,10 @@ class BpmnModelingService:
         process: list[dict],
         message_history: list[MessageItem],
     ) -> list:
-        change_request = define_change_request(text_llm_facade, process, message_history)
+        change_request = define_change_request(
+            text_llm_facade, process, message_history
+        )
 
-        bpmn_editor_service = BpmnEditorService(llm_facade, process, change_request)
+        bpmn_editor_service = BpmnEditingService(llm_facade, process, change_request)
 
         return bpmn_editor_service.edit_bpmn()
-
-    def _validate_bpmn(self, process: list) -> None:
-        """
-        Validate the BPMN process.
-        Args:
-            process: The BPMN process in JSON format.
-        Raises:
-            Exception: If the BPMN process is invalid.
-        """
-        try:
-            for element in process:
-                self._validate_element(element)
-
-                if element["type"] == "exclusiveGateway":
-                    for branch in element["branches"]:
-                        self._validate_bpmn(branch["path"])
-                if element["type"] == "parallelGateway":
-                    for branch in element["branches"]:
-                        self._validate_bpmn(branch)
-        except Exception as e:
-            raise e
-
-    def _validate_element(self, element: dict) -> None:
-        """
-        Validate the BPMN element.
-        Args:
-            element: The BPMN element in JSON format.
-        Raises:
-            Exception: If the BPMN element is invalid.
-        """
-        if "id" not in element:
-            raise Exception(f"Element is missing an ID: {element}")
-        elif "type" not in element:
-            raise Exception(f"Element is missing a type: {element}")
-
-        supported_elements = [e.value for e in BPMNElementType]
-
-        if element["type"] not in supported_elements:
-            raise Exception(
-                f"Unsupported element type: {element['type']}. Supported types: {supported_elements}"
-            )
-
-        if element["type"] in ["task", "userTask", "serviceTask"]:
-            if "label" not in element:
-                raise Exception(f"Task element is missing a label: {element}")
-
-        elif element["type"] == "exclusiveGateway":
-            if "label" not in element:
-                raise Exception(f"Exclusive gateway is missing a label: {element}")
-            if "branches" not in element or not isinstance(element["branches"], list):
-                raise Exception(
-                    f"Exclusive gateway is missing or has invalid 'branches': {element}"
-                )
-            for branch in element["branches"]:
-                if "condition" not in branch or "path" not in branch:
-                    raise Exception(f"Invalid branch in exclusive gateway: {branch}")
-
-        elif element["type"] == "parallelGateway":
-            if "branches" not in element or not isinstance(element["branches"], list):
-                raise Exception(
-                    f"Parallel gateway is missing or has invalid 'branches': {element}"
-                )

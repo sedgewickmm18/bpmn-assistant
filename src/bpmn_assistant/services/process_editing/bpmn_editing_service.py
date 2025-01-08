@@ -12,6 +12,7 @@ from bpmn_assistant.services.process_editing import (
     redirect_branch,
     update_element,
 )
+from bpmn_assistant.services.validate_bpmn import validate_element
 from bpmn_assistant.utils import prepare_prompt
 
 
@@ -26,7 +27,7 @@ class IntermediateEditProposal(BaseModel):
     stop: Optional[Literal[True]] = None
 
 
-class BpmnEditorService:
+class BpmnEditingService:
     def __init__(self, llm_facade: LLMFacade, process: list, change_request: str):
         self.llm_facade = llm_facade
         self.process = process
@@ -50,24 +51,35 @@ class BpmnEditorService:
         )
         return updated_process
 
-    def _apply_intermediate_edits(
-        self,
-        updated_process: list,
-        max_num_of_iterations: int = 7,
-    ) -> list:
-        for _ in range(max_num_of_iterations):
-            response = self._get_intermediate_edit_proposal(updated_process)
+    def _get_initial_edit_proposal(self, max_retries: int = 3) -> dict:
+        """
+        Get an initial edit proposal from the LLM.
+        Args:
+            max_retries: The maximum number of retries to perform if the response is invalid
+        Returns:
+            The initial edit proposal (function and arguments)
+        """
+        attempts = 0
 
-            if "stop" in response:
-                logger.info("Edit process stopped.")
-                return updated_process
-            else:
-                # The 'response' is the edit proposal (function and arguments)
-                updated_process = self._attempt_process_update_with_retries(
-                    updated_process, response
-                )
+        prompt = prepare_prompt(
+            "edit_bpmn.txt",
+            process=str(self.process),
+            change_request=self.change_request,
+        )
 
-        raise Exception("Max number of iterations reached. Process not fully edited.")
+        while attempts < max_retries:
+            attempts += 1
+
+            try:
+                response = self.llm_facade.call(prompt, structured_output=EditProposal)
+                logger.info(f"Edit proposal: {response}")
+                self._validate_llm_response(response)
+                return response
+            except ValueError as e:
+                logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
+                prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
+
+        raise Exception("Max number of retries reached.")
 
     def _attempt_process_update_with_retries(
         self, process: list, edit_proposal: dict, max_retries: int = 3
@@ -119,35 +131,24 @@ class BpmnEditorService:
         res = edit_functions[function_to_call](process, **args)
         return res["process"]
 
-    def _get_initial_edit_proposal(self, max_retries: int = 3) -> dict:
-        """
-        Get an initial edit proposal from the LLM.
-        Args:
-            max_retries: The maximum number of retries to perform if the response is invalid
-        Returns:
-            The initial edit proposal (function and arguments)
-        """
-        attempts = 0
+    def _apply_intermediate_edits(
+        self,
+        updated_process: list,
+        max_num_of_iterations: int = 7,
+    ) -> list:
+        for _ in range(max_num_of_iterations):
+            response = self._get_intermediate_edit_proposal(updated_process)
 
-        prompt = prepare_prompt(
-            "edit_bpmn.txt",
-            process=str(self.process),
-            change_request=self.change_request,
-        )
+            if "stop" in response:
+                logger.info("Edit process stopped.")
+                return updated_process
+            else:
+                # The 'response' is the edit proposal (function and arguments)
+                updated_process = self._attempt_process_update_with_retries(
+                    updated_process, response
+                )
 
-        while attempts < max_retries:
-            attempts += 1
-
-            try:
-                response = self.llm_facade.call(prompt, structured_output=EditProposal)
-                logger.info(f"Edit proposal: {response}")
-                self._validate_llm_response(response)
-                return response
-            except ValueError as e:
-                logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
-                prompt = f"Editing error: {str(e)}. Please provide a new edit proposal."
-
-        raise Exception("Max number of retries reached.")
+        raise Exception("Max number of iterations reached. Process not fully edited.")
 
     def _get_intermediate_edit_proposal(
         self, updated_process: list, max_retries: int = 3
@@ -179,73 +180,90 @@ class BpmnEditorService:
                 return response
             except ValueError as e:
                 logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
-                prompt = f"Editing error: {str(e)}. Please provide a new edit proposal."
+                prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
 
         raise Exception("Max number of retries reached.")
 
     def _validate_llm_response(
         self, response: dict, is_first_edit: bool = True
-    ) -> bool:
+    ) -> None:
 
         if not is_first_edit and "stop" in response:
-            return True
+            if len(response) > 1:
+                raise ValueError(
+                    "If 'stop' key is present, no other key should be provided."
+                )
+            return
 
-        if (
-            "function" not in response or "arguments" not in response
-        ) and "stop" not in response:
+        if "function" not in response or "arguments" not in response:
             raise ValueError(
-                "Function call should contain 'function' and 'arguments' keys, or a 'stop' key."
+                "Function call should contain 'function' and 'arguments' keys."
             )
 
         function_to_call = response["function"]
         args = response["arguments"]
 
         if function_to_call == "delete_element":
-            if "element_id" not in args:
-                raise ValueError("Arguments should contain 'element_id' key.")
-            elif len(args) > 1:
-                raise ValueError("Arguments should contain only 'element_id' key.")
+            self._validate_delete_element(args)
         elif function_to_call == "redirect_branch":
-            if "branch_condition" not in args or "next_id" not in args:
-                raise ValueError(
-                    "Arguments should contain 'branch_condition' and 'next_id' keys."
-                )
-            elif len(args) > 2:
-                raise ValueError(
-                    "Arguments should contain only 'branch_condition' and 'next_id' keys."
-                )
+            self._validate_redirect_branch(args)
         elif function_to_call == "add_element":
-            if "element" not in args:
-                raise ValueError("Arguments should contain 'element' key.")
-            elif "before_id" in args and "after_id" in args:
-                raise ValueError(
-                    "Only one of 'before_id' and 'after_id' should be provided."
-                )
-            elif "before_id" not in args and "after_id" not in args:
-                raise ValueError("Either 'before_id' or 'after_id' should be provided.")
-            elif len(args) > 2:
-                raise ValueError(
-                    "Arguments should contain only 'element' and either 'before_id' or 'after_id' keys."
-                )
+            self._validate_add_element(args)
         elif function_to_call == "move_element":
-            if "element_id" not in args:
-                raise ValueError("Arguments should contain 'element_id' key.")
-            elif "before_id" in args and "after_id" in args:
-                raise ValueError(
-                    "Only one of 'before_id' and 'after_id' should be provided."
-                )
-            elif "before_id" not in args and "after_id" not in args:
-                raise ValueError("Either 'before_id' or 'after_id' should be provided.")
-            elif len(args) > 2:
-                raise ValueError(
-                    "Arguments should contain only 'element_id' and either 'before_id' or 'after_id' keys."
-                )
+            self._validate_move_element(args)
         elif function_to_call == "update_element":
-            if "new_element" not in args:
-                raise ValueError("Arguments should contain 'new_element' key.")
-            elif len(args) > 1:
-                raise ValueError("Arguments should contain only 'new_element' key.")
+            self._validate_update_element(args)
         else:
             raise ValueError(f"Function '{function_to_call}' not found.")
 
-        return True
+    def _validate_update_element(self, args):
+        if "new_element" not in args:
+            raise ValueError("Arguments should contain 'new_element' key.")
+        elif len(args) > 1:
+            raise ValueError("Arguments should contain only 'new_element' key.")
+        validate_element(args["new_element"])
+
+    def _validate_move_element(self, args):
+        if "element_id" not in args:
+            raise ValueError("Arguments should contain 'element_id' key.")
+        elif "before_id" in args and "after_id" in args:
+            raise ValueError(
+                "Only one of 'before_id' and 'after_id' should be provided."
+            )
+        elif "before_id" not in args and "after_id" not in args:
+            raise ValueError("Either 'before_id' or 'after_id' should be provided.")
+        elif len(args) > 2:
+            raise ValueError(
+                "Arguments should contain only 'element_id' and either 'before_id' or 'after_id' keys."
+            )
+
+    def _validate_add_element(self, args):
+        if "element" not in args:
+            raise ValueError("Arguments should contain 'element' key.")
+        elif "before_id" in args and "after_id" in args:
+            raise ValueError(
+                "Only one of 'before_id' and 'after_id' should be provided."
+            )
+        elif "before_id" not in args and "after_id" not in args:
+            raise ValueError("Either 'before_id' or 'after_id' should be provided.")
+        elif len(args) > 2:
+            raise ValueError(
+                "Arguments should contain only 'element' and either 'before_id' or 'after_id' keys."
+            )
+        validate_element(args["element"])
+
+    def _validate_redirect_branch(self, args):
+        if "branch_condition" not in args or "next_id" not in args:
+            raise ValueError(
+                "Arguments should contain 'branch_condition' and 'next_id' keys."
+            )
+        elif len(args) > 2:
+            raise ValueError(
+                "Arguments should contain only 'branch_condition' and 'next_id' keys."
+            )
+
+    def _validate_delete_element(self, args):
+        if "element_id" not in args:
+            raise ValueError("Arguments should contain 'element_id' key.")
+        elif len(args) > 1:
+            raise ValueError("Arguments should contain only 'element_id' key.")

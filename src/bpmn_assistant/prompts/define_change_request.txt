@@ -373,7 +373,7 @@ Textual description: "The process starts with a decision. If Option A is selecte
 
 The last user message indicates that the user wants to make a modification to the process.
 
-Based on the last user message, construct a concise change request.
+Based on the last user message, construct a **concise** change request.
 
 The change request should include:
 1. A short natural language description of the change.

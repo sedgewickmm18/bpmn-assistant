@@ -9,16 +9,6 @@ from bpmn_assistant.services import BpmnModelingService
 
 class TestCreateBpmn:
 
-    @pytest.mark.skip(reason="Test with real API")
-    def test_create_bpmn(self, message_history_create_bpmn, openai_facade):
-        bpmn_service = BpmnModelingService()
-
-        result = bpmn_service.create_bpmn(openai_facade, message_history_create_bpmn)
-
-        print(json.dumps(result, indent=4))
-
-        assert True
-
     def test_create_bpmn_raises_exception_for_missing_id(self):
         bpmn_service = BpmnModelingService()
         mock_llm_facade = Mock(LLMFacade)
