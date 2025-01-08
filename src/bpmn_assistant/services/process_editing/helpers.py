@@ -1,5 +1,7 @@
 from typing import Optional
 
+from bpmn_assistant.core.enums import BPMNElementType
+from bpmn_assistant.core.exceptions import ProcessException
 from bpmn_assistant.services.process_editing.position import Position
 
 
@@ -14,16 +16,16 @@ def get_all_ids(process: list[dict]):
     ids = []
     for element in process:
         ids.append(element["id"])
-        if element["type"] == "exclusiveGateway":
+        if element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
             for branch in element["branches"]:
                 ids += get_all_ids(branch["path"])
-        elif element["type"] == "parallelGateway":
+        elif element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
             for branch in element["branches"]:
                 ids += get_all_ids(branch)
     return ids
 
 
-def find_position_in_process(
+def _find_position_in_process(
     process: list[dict],
     target_id: str,
     after: bool = False,
@@ -44,9 +46,9 @@ def find_position_in_process(
         current_path = path + [index]
         if element["id"] == target_id:
             return {"index": index + 1 if after else index, "path": path}
-        if element["type"] == "exclusiveGateway":
+        if element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
             for branch_index, branch in enumerate(element["branches"]):
-                result = find_position_in_process(
+                result = _find_position_in_process(
                     branch["path"],
                     target_id,
                     after,
@@ -54,9 +56,9 @@ def find_position_in_process(
                 )
                 if result:
                     return result
-        elif element["type"] == "parallelGateway":
+        elif element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
             for branch_index, branch in enumerate(element["branches"]):
-                result = find_position_in_process(
+                result = _find_position_in_process(
                     branch, target_id, after, current_path + ["branches", branch_index]
                 )
                 if result:
@@ -82,25 +84,25 @@ def find_position(
     position = None
 
     if before_id is None and after_id is None:
-        raise Exception("Both before_id and after_id cannot be None")
+        raise ProcessException("Both before_id and after_id cannot be None")
     elif before_id is not None and after_id is not None:
-        raise Exception("Only one of before_id and after_id can be specified")
+        raise ProcessException("Only one of before_id and after_id can be specified")
     elif before_id is not None:
         if before_id not in ids:
-            raise Exception(f"Element with id {before_id} does not exist")
-        position = find_position_in_process(process, before_id)
+            raise ProcessException(f"Element with id {before_id} does not exist")
+        position = _find_position_in_process(process, before_id)
     elif after_id is not None:
         if after_id not in ids:
-            raise Exception(f"Element with id {after_id} does not exist")
-        position = find_position_in_process(process, after_id, after=True)
+            raise ProcessException(f"Element with id {after_id} does not exist")
+        position = _find_position_in_process(process, after_id, after=True)
 
     if position is None:
-        raise Exception("Element not found")
+        raise ProcessException("Element not found")
 
     return Position(position["index"], position["path"])
 
 
-def find_branch_by_condition(
+def _find_branch_by_condition(
     process: list[dict], target_condition: str, path: Optional[list] = None
 ) -> dict | None:
     """
@@ -115,7 +117,7 @@ def find_branch_by_condition(
     path = path or []
     for index, element in enumerate(process):
         current_path = path + [index]
-        if element["type"] == "exclusiveGateway":
+        if element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
             for branch_index, branch in enumerate(element["branches"]):
                 if branch["condition"] == target_condition:
                     return {
@@ -126,16 +128,16 @@ def find_branch_by_condition(
 
             # If not found in this gateway, search nested gateways
             for branch_index, branch in enumerate(element["branches"]):
-                result = find_branch_by_condition(
+                result = _find_branch_by_condition(
                     branch["path"],
                     target_condition,
                     current_path + ["branches", branch_index, "path"],
                 )
                 if result:
                     return result
-        elif element["type"] == "parallelGateway":
+        elif element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
             for branch_index, branch in enumerate(element["branches"]):
-                result = find_branch_by_condition(
+                result = _find_branch_by_condition(
                     branch, target_condition, current_path + ["branches", branch_index]
                 )
                 if result:
@@ -153,9 +155,9 @@ def find_branch_position(process: list[dict], condition: str) -> Position:
         Position: A class that contains the index and path of the branch.
         Example: Position(index=1, path=[2, "branches"])
     """
-    result = find_branch_by_condition(process, condition)
+    result = _find_branch_by_condition(process, condition)
 
     if result is None:
-        raise Exception(f"Branch with condition '{condition}' does not exist")
+        raise ProcessException(f"Branch with condition '{condition}' does not exist")
 
     return Position(result["branch_index"], result["path"] + ["branches"])

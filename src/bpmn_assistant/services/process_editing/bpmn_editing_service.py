@@ -44,20 +44,13 @@ class BpmnEditingService:
 
         return updated_process
 
-    def _apply_initial_edit(self) -> list:
-        response = self._get_initial_edit_proposal()
-        updated_process = self._attempt_process_update_with_retries(
-            self.process, response
-        )
-        return updated_process
-
-    def _get_initial_edit_proposal(self, max_retries: int = 3) -> dict:
+    def _apply_initial_edit(self, max_retries: int = 4) -> list:
         """
-        Get an initial edit proposal from the LLM.
+        Apply the initial edit to the process.
         Args:
             max_retries: The maximum number of retries to perform if the response is invalid
         Returns:
-            The initial edit proposal (function and arguments)
+            The updated process
         """
         attempts = 0
 
@@ -70,43 +63,82 @@ class BpmnEditingService:
         while attempts < max_retries:
             attempts += 1
 
+            # Get initial edit proposal
             try:
-                response = self.llm_facade.call(prompt, structured_output=EditProposal)
-                logger.info(f"Edit proposal: {response}")
-                self._validate_llm_response(response)
-                return response
+                edit_proposal: EditProposal = self.llm_facade.call(
+                    prompt, structured_output=EditProposal
+                )
+                logger.info(f"Edit proposal: {edit_proposal}")
+                self._validate_edit_proposal(edit_proposal)
+
+                # Update process based on the edit proposal
+                try:
+                    updated_process = self._update_process(self.process, edit_proposal)
+                    return updated_process
+                except ProcessException as e:
+                    logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
+                    prompt = f"Error: {str(e)}. Try again. Change request: {self.change_request}"
             except ValueError as e:
                 logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
                 prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
 
         raise Exception("Max number of retries reached.")
 
-    def _attempt_process_update_with_retries(
-        self, process: list, edit_proposal: dict, max_retries: int = 3
+    def _apply_intermediate_edits(
+        self,
+        updated_process: list,
+        max_retries: int = 4,
+        max_num_of_iterations: int = 7,
     ) -> list:
-        attempts = 0
+        """
+        Apply intermediate edits to the process.
+        Args:
+            updated_process: The updated process after the initial edit
+            max_retries: The maximum number of retries to perform if the response is invalid
+            max_num_of_iterations: The maximum number of iterations to perform
+        Returns:
+            The updated process
+        """
+        for _ in range(max_num_of_iterations):
+            attempts = 0
 
-        while attempts < max_retries:
-            attempts += 1
+            prompt = prepare_prompt(
+                "edit_bpmn_intermediate_step.txt",
+                process=str(updated_process),
+            )
 
-            try:
-                updated_process = self._update_process(process, edit_proposal)
-                return updated_process
-            except ProcessException as e:
-                error_message = str(e)
-                logger.warning(
-                    f"Validation error (attempt {attempts}): {error_message}"
-                )
+            while attempts < max_retries:
+                attempts += 1
 
-                new_prompt = f"Error: {error_message}. Try again. Change request: {self.change_request}"
+                # Get intermediate edit proposal
+                try:
+                    edit_proposal: IntermediateEditProposal = self.llm_facade.call(
+                        prompt, structured_output=IntermediateEditProposal
+                    )
+                    logger.info(f"Intermediate edit proposal: {edit_proposal}")
+                    self._validate_edit_proposal(edit_proposal, is_first_edit=False)
 
-                edit_proposal = self.llm_facade.call(new_prompt)
-                logger.info(f"New edit proposal: {edit_proposal}")
+                    if "stop" in edit_proposal:
+                        logger.info("Edit process stopped.")
+                        return updated_process
 
-                if "stop" in edit_proposal:
-                    return process
+                    # Update process based on the edit proposal
+                    try:
+                        updated_process = self._update_process(
+                            updated_process, edit_proposal
+                        )
+                    except ProcessException as e:
+                        logger.warning(
+                            f"Validation error (attempt {attempts}): {str(e)}"
+                        )
+                        prompt = (
+                            f"Editing error: {str(e)}. Provide a new edit proposal."
+                        )
+                except ValueError as e:
+                    logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
+                    prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
 
-        raise Exception("Max number of retries reached. Process not fully edited.")
+        raise Exception("Max number of editing iterations reached.")
 
     def _update_process(self, process: list, edit_proposal: dict) -> list:
         """
@@ -116,6 +148,8 @@ class BpmnEditingService:
             edit_proposal: The edit proposal from the LLM (function and args)
         Returns:
             The updated process
+        Raises:
+            ProcessException: If the edit proposal is invalid
         """
         edit_functions = {
             "delete_element": delete_element,
@@ -131,77 +165,32 @@ class BpmnEditingService:
         res = edit_functions[function_to_call](process, **args)
         return res["process"]
 
-    def _apply_intermediate_edits(
-        self,
-        updated_process: list,
-        max_num_of_iterations: int = 7,
-    ) -> list:
-        for _ in range(max_num_of_iterations):
-            response = self._get_intermediate_edit_proposal(updated_process)
-
-            if "stop" in response:
-                logger.info("Edit process stopped.")
-                return updated_process
-            else:
-                # The 'response' is the edit proposal (function and arguments)
-                updated_process = self._attempt_process_update_with_retries(
-                    updated_process, response
-                )
-
-        raise Exception("Max number of iterations reached. Process not fully edited.")
-
-    def _get_intermediate_edit_proposal(
-        self, updated_process: list, max_retries: int = 3
-    ) -> dict:
-        """
-        Get an intermediate edit proposal from the LLM.
-        Args:
-            updated_process: The updated BPMN process
-            max_retries: The maximum number of retries to perform if the response is invalid
-        Returns:
-            The intermediate edit proposal (function and arguments, or 'stop')
-        """
-        attempts = 0
-
-        prompt = prepare_prompt(
-            "edit_bpmn_intermediate_step.txt",
-            process=str(updated_process),
-        )
-
-        while attempts < max_retries:
-            attempts += 1
-
-            try:
-                response = self.llm_facade.call(
-                    prompt, structured_output=IntermediateEditProposal
-                )
-                logger.info(f"Intermediate edit proposal: {response}")
-                self._validate_llm_response(response, is_first_edit=False)
-                return response
-            except ValueError as e:
-                logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
-                prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
-
-        raise Exception("Max number of retries reached.")
-
-    def _validate_llm_response(
-        self, response: dict, is_first_edit: bool = True
+    def _validate_edit_proposal(
+        self, edit_proposal: dict, is_first_edit: bool = True
     ) -> None:
+        """
+        Validate the edit proposal from the LLM.
+        Args:
+            edit_proposal: The edit proposal from the LLM
+            is_first_edit: Whether the response is for the initial edit
+        Raises:
+            ValueError: If the edit proposal is invalid
+        """
 
-        if not is_first_edit and "stop" in response:
-            if len(response) > 1:
+        if not is_first_edit and "stop" in edit_proposal:
+            if len(edit_proposal) > 1:
                 raise ValueError(
                     "If 'stop' key is present, no other key should be provided."
                 )
             return
 
-        if "function" not in response or "arguments" not in response:
+        if "function" not in edit_proposal or "arguments" not in edit_proposal:
             raise ValueError(
                 "Function call should contain 'function' and 'arguments' keys."
             )
 
-        function_to_call = response["function"]
-        args = response["arguments"]
+        function_to_call = edit_proposal["function"]
+        args = edit_proposal["arguments"]
 
         if function_to_call == "delete_element":
             self._validate_delete_element(args)

@@ -59,9 +59,9 @@ def validate_element(element: dict) -> None:
         _validate_parallel_gateway(element)
 
 
-def _validate_task(element: dict) -> Optional[str]:
+def _validate_task(element: dict) -> None:
     if "label" not in element:
-        raise Exception(f"Task element is missing a label: {element}")
+        raise ValueError(f"Task element is missing a label: {element}")
 
     try:
         BPMNTask.model_validate(element)
@@ -69,16 +69,16 @@ def _validate_task(element: dict) -> Optional[str]:
         raise ValueError(f"Invalid task element: {element}")
 
 
-def _validate_exclusive_gateway(element: dict) -> Optional[str]:
+def _validate_exclusive_gateway(element: dict) -> None:
     if "label" not in element:
-        raise Exception(f"Exclusive gateway is missing a label: {element}")
+        raise ValueError(f"Exclusive gateway is missing a label: {element}")
     if "branches" not in element or not isinstance(element["branches"], list):
-        raise Exception(
+        raise ValueError(
             f"Exclusive gateway is missing or has invalid 'branches': {element}"
         )
     for branch in element["branches"]:
         if "condition" not in branch or "path" not in branch:
-            raise Exception(f"Invalid branch in exclusive gateway: {branch}")
+            raise ValueError(f"Invalid branch in exclusive gateway: {branch}")
 
     try:
         ExclusiveGateway.model_validate(element)
@@ -86,10 +86,10 @@ def _validate_exclusive_gateway(element: dict) -> Optional[str]:
         raise ValueError(f"Invalid exclusive gateway element: {element}")
 
 
-def _validate_parallel_gateway(element: dict) -> Optional[str]:
+def _validate_parallel_gateway(element: dict) -> None:
     if "branches" not in element or not isinstance(element["branches"], list):
-        raise Exception(
-            f"Parallel gateway is missing or has invalid 'branches': {element}"
+        raise ValueError(
+            f"Parallel gateway has missing or invalid 'branches': {element}"
         )
 
     try:

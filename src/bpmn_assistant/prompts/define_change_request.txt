@@ -65,7 +65,7 @@ If the process description does not explicitly mention the 'else' branch or spec
 ### Parallel gateway
 
 Specify "branches" as an array of arrays, where each sub-array lists elements executed in parallel.
-A converging element is automatically generated to synchronize parallel branches. Therefore, there's no need to explicitly specify it.
+A converging (join) element is automatically generated to synchronize parallel branches. Therefore, there's no need to explicitly specify it.
 
 ```json
 {
@@ -82,6 +82,8 @@ A converging element is automatically generated to synchronize parallel branches
 # Process examples
 
 The order of execution in the BPMN process is determined by the sequence of elements in the top-level "process" array. Elements are executed in the order they appear in this array, from first to last.
+
+## Example 1
 
 Textual description:
 "The student sends an email to the professor. The professor receives the email. If the professor agrees with the proposal, he replies to the student."
@@ -133,7 +135,7 @@ Textual description:
 }
 ```
 
----
+## Example 2
 
 Textual description:
 "The manager sends the mail to the supplier and prepares the documents. At the same time, the customer searches for the goods and picks up the goods."
@@ -183,7 +185,7 @@ Textual description:
 }
 ```
 
----
+## Example 3
 
 Textual description: "Someone starts a process by entering an exam room. After that, they take the test. Once the exam is finished, their score is checked. If they scored more than 50%, their grade is recorded and the process ends. But if they fail, they have to go back to the beginning and take the exam again."
 
@@ -235,7 +237,7 @@ Textual description: "Someone starts a process by entering an exam room. After t
 }
 ```
 
----
+## Example 4
 
 Textual description: "The process starts with a decision. If Option A is selected, Task A is performed. If Option B is selected, Task B is performed. Task A is followed by another decision. If Sub-option 1 is selected, Task A1 is performed. If Sub-option 2 is selected, Task A2 is performed."
 
@@ -311,8 +313,6 @@ Textual description: "The process starts with a decision. If Option A is selecte
 }
 ```
 
----
-
 # Process editing functions
 
 - `delete_element(element_id)`
@@ -363,13 +363,9 @@ Textual description: "The process starts with a decision. If Option A is selecte
 
 ::process
 
----
-
 # Message history
 
 ::message_history
-
----
 
 The last user message indicates that the user wants to make a modification to the process.
 

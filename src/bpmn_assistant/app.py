@@ -59,9 +59,14 @@ def _available_providers() -> JSONResponse:
 
 def replace_reasoning_model(model: str) -> str:
     """
-    Returns GPT-4o if o1-preview is requested. Otherwise returns the original model.
+    Returns GPT-4o if o1-preview is requested, or GPT-4o-mini if o1-mini is requested.
+    Otherwise returns the original model.
     """
-    return OpenAIModels.GPT_4O.value if model == OpenAIModels.O1.value else model
+    if model == OpenAIModels.O1.value:
+        return OpenAIModels.GPT_4O.value
+    elif model == OpenAIModels.O1_MINI.value:
+        return OpenAIModels.GPT_4O_MINI.value
+    return model
 
 
 @app.post("/determine_intent")
