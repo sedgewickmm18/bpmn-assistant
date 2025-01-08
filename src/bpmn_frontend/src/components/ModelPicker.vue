@@ -50,12 +50,12 @@ export default {
         { value: Models.GPT_4O, title: "GPT-4o", provider: Providers.OPENAI },
         {
           value: Models.O1_MINI,
-          title: "GPT-4o mini + o1-mini",
+          title: "o1-mini",
           provider: Providers.OPENAI,
         },
         {
           value: Models.O1,
-          title: "GPT-4o + o1",
+          title: "o1",
           provider: Providers.OPENAI,
         },
         {

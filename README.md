@@ -74,7 +74,7 @@ Note: You can use any combination of the API keys above, but at least one is req
 * o1-preview
 * o1-mini
 
-> Note: Both o1-preview and o1-mini are used together with their respective GPT-4o models as they don't support structured outputs yet. While providing enhanced performance (especially for BPMN diagram editing), they have longer response times and can incur significant costs.
+> Note: Both o1-preview and o1-mini are used together with their respective GPT-4o models as they don't support structured outputs yet. While providing enhanced performance, they have longer response times and can incur significant costs.
 
 ### Anthropic
 

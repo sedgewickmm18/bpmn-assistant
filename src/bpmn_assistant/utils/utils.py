@@ -110,6 +110,10 @@ def is_openai_model(model: str) -> bool:
     return model in [model.value for model in OpenAIModels]
 
 
+def is_reasoning_model(model: str) -> bool:
+    return model in [model.value for model in [OpenAIModels.O1, OpenAIModels.O1_MINI]]
+
+
 def is_anthropic_model(model: str) -> bool:
     return model in [model.value for model in AnthropicModels]
 

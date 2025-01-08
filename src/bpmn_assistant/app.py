@@ -18,7 +18,11 @@ from bpmn_assistant.services import (
     ConversationalService,
     determine_intent,
 )
-from bpmn_assistant.utils import get_available_providers, get_llm_facade
+from bpmn_assistant.utils import (
+    get_available_providers,
+    get_llm_facade,
+    is_reasoning_model,
+)
 
 app = FastAPI()
 
@@ -102,10 +106,15 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
                 llm_facade, text_llm_facade, request.process, request.message_history
             )
         else:
-            logger.info("Creating a new BPMN process...")
-            process = bpmn_modeling_service.create_bpmn(
-                llm_facade, request.message_history
-            )
+            # TODO: fix once o1 API becomes available
+            if is_reasoning_model(request.model):
+                process = bpmn_modeling_service.create_bpmn(
+                    llm_facade, request.message_history, text_llm_facade
+                )
+            else:
+                process = bpmn_modeling_service.create_bpmn(
+                    llm_facade, request.message_history
+                )
 
         bpmn_xml_string = bpmn_xml_generator.create_bpmn_xml(process)
 
