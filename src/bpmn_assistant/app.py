@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
@@ -9,8 +9,8 @@ from bpmn_assistant.api.requests import (
     ModifyBpmnRequest,
 )
 from bpmn_assistant.config import logger
-from bpmn_assistant.core.enums.models import OpenAIModels
-from bpmn_assistant.core.enums.output_modes import OutputMode
+from bpmn_assistant.core import handle_exceptions
+from bpmn_assistant.core.enums import OutputMode
 from bpmn_assistant.services import (
     BpmnJsonGenerator,
     BpmnModelingService,
@@ -22,6 +22,7 @@ from bpmn_assistant.utils import (
     get_available_providers,
     get_llm_facade,
     is_reasoning_model,
+    replace_reasoning_model,
 )
 
 app = FastAPI()
@@ -39,21 +40,19 @@ bpmn_xml_generator = BpmnXmlGenerator()
 
 
 @app.post("/bpmn_to_json")
-def _bpmn_to_json(request: BpmnToJsonRequest) -> JSONResponse:
+@handle_exceptions
+async def _bpmn_to_json(request: BpmnToJsonRequest) -> JSONResponse:
     """
     Convert the BPMN XML to its JSON representation
     """
-    try:
-        bpmn_json_generator = BpmnJsonGenerator()
-        result = bpmn_json_generator.create_bpmn_json(request.bpmn_xml)
-        return JSONResponse(content=result)
-    except Exception as e:
-        logger.error(f"Error: {str(e)}", exc_info=e)
-        raise HTTPException(status_code=500, detail=str(e))
+    bpmn_json_generator = BpmnJsonGenerator()
+    result = bpmn_json_generator.create_bpmn_json(request.bpmn_xml)
+    return JSONResponse(content=result)
 
 
 @app.get("/available_providers")
-def _available_providers() -> JSONResponse:
+@handle_exceptions
+async def _available_providers() -> JSONResponse:
     """
     Get the available LLM providers
     """
@@ -61,35 +60,20 @@ def _available_providers() -> JSONResponse:
     return JSONResponse(content=providers)
 
 
-def replace_reasoning_model(model: str) -> str:
-    """
-    Returns GPT-4o if o1-preview is requested, or GPT-4o-mini if o1-mini is requested.
-    Otherwise returns the original model.
-    """
-    if model == OpenAIModels.O1.value:
-        return OpenAIModels.GPT_4O.value
-    elif model == OpenAIModels.O1_MINI.value:
-        return OpenAIModels.GPT_4O_MINI.value
-    return model
-
-
 @app.post("/determine_intent")
+@handle_exceptions
 async def _determine_intent(request: DetermineIntentRequest) -> JSONResponse:
     """
     Determine the intent of the user query
     """
-    try:
-        # TODO: fix once o1 API becomes available
-        model = replace_reasoning_model(request.model)
-        llm_facade = get_llm_facade(model)
-        intent = determine_intent(llm_facade, request.message_history)
-        return JSONResponse(content=intent)
-    except Exception as e:
-        logger.error(f"Error: {str(e)}", exc_info=e)
-        raise HTTPException(status_code=500, detail=str(e))
+    model = replace_reasoning_model(request.model)
+    llm_facade = get_llm_facade(model)
+    intent = determine_intent(llm_facade, request.message_history)
+    return JSONResponse(content=intent)
 
 
 @app.post("/modify")
+@handle_exceptions
 async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     """
     Modify the BPMN process based on the user query. If the request does not contain a BPMN JSON,
@@ -99,35 +83,29 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     model = replace_reasoning_model(request.model)
     llm_facade = get_llm_facade(model)
     text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT)
-    try:
-        if request.process:
-            logger.info("Editing the BPMN process...")
-            process = bpmn_modeling_service.edit_bpmn(
-                llm_facade, text_llm_facade, request.process, request.message_history
+
+    if request.process:
+        logger.info("Editing the BPMN process...")
+        process = bpmn_modeling_service.edit_bpmn(
+            llm_facade, text_llm_facade, request.process, request.message_history
+        )
+    else:
+        # TODO: fix once o1 API becomes available
+        if is_reasoning_model(request.model):
+            process = bpmn_modeling_service.create_bpmn(
+                llm_facade, request.message_history, text_llm_facade
             )
         else:
-            # TODO: fix once o1 API becomes available
-            if is_reasoning_model(request.model):
-                process = bpmn_modeling_service.create_bpmn(
-                    llm_facade, request.message_history, text_llm_facade
-                )
-            else:
-                process = bpmn_modeling_service.create_bpmn(
-                    llm_facade, request.message_history
-                )
+            process = bpmn_modeling_service.create_bpmn(
+                llm_facade, request.message_history
+            )
 
-        bpmn_xml_string = bpmn_xml_generator.create_bpmn_xml(process)
-
-        return JSONResponse(content={"bpmn_xml": bpmn_xml_string, "bpmn_json": process})
-
-    except Exception as e:
-        logger.error(f"Error: {str(e)}", exc_info=e)
-        raise HTTPException(status_code=500, detail=str(e))
+    bpmn_xml_string = bpmn_xml_generator.create_bpmn_xml(process)
+    return JSONResponse(content={"bpmn_xml": bpmn_xml_string, "bpmn_json": process})
 
 
 @app.post("/talk")
 async def _talk(request: ConversationalRequest) -> StreamingResponse:
-    # o1 is not needed here, and does not support streaming
     model = replace_reasoning_model(request.model)
 
     conversational_service = ConversationalService(model)
