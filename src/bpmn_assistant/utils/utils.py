@@ -1,5 +1,4 @@
 import os
-from importlib import resources
 
 from dotenv import load_dotenv
 
@@ -12,44 +11,6 @@ from bpmn_assistant.core.enums import (
     OutputMode,
     Provider,
 )
-
-
-def prepare_prompt(template_file: str, **kwargs) -> str:
-    """
-    Read the prompt template from the given resource and replace the placeholders with the given values.
-    Args:
-        template_file (str): The template file name.
-        **kwargs: Keyword arguments where keys are variable names (without '::')
-                  and values are the replacement strings.
-    Returns:
-        str: The prompt
-    """
-    prompt_template = resources.read_text("bpmn_assistant.prompts", template_file)
-
-    prompt = prompt_template
-
-    # Extract variables from the template
-    template_parts = prompt_template.split("::")
-    template_variables = [part.split()[0] for part in template_parts[1:]]
-
-    # Check for unused variables
-    passed_variables = set(kwargs.keys())
-    template_variable_set = set(template_variables)
-    unused_variables = passed_variables - template_variable_set
-
-    if unused_variables:
-        raise ValueError(
-            f"The following variables were passed but not found in the template: {', '.join(unused_variables)}"
-        )
-
-    # Replace each variable with its corresponding value
-    for variable, value in kwargs.items():
-        placeholder = f"::{variable}"
-        if placeholder not in prompt:
-            raise ValueError(f"Variable '{variable}' not found in the prompt template.")
-        prompt = prompt.replace(placeholder, value)
-
-    return prompt
 
 
 def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON) -> LLMFacade:

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade
 from bpmn_assistant.core.exceptions import ProcessException
+from bpmn_assistant.prompts import PromptTemplateProcessor
 from bpmn_assistant.services.process_editing import (
     add_element,
     delete_element,
@@ -13,7 +14,6 @@ from bpmn_assistant.services.process_editing import (
     update_element,
 )
 from bpmn_assistant.services.validate_bpmn import validate_element
-from bpmn_assistant.utils import prepare_prompt
 
 
 class EditProposal(BaseModel):
@@ -32,6 +32,7 @@ class BpmnEditingService:
         self.llm_facade = llm_facade
         self.process = process
         self.change_request = change_request
+        self.prompt_processor = PromptTemplateProcessor()
 
     def edit_bpmn(self) -> list:
         """
@@ -54,8 +55,8 @@ class BpmnEditingService:
         """
         attempts = 0
 
-        prompt = prepare_prompt(
-            "edit_bpmn.txt",
+        prompt = self.prompt_processor.render_template(
+            "edit_bpmn.jinja2",
             process=str(self.process),
             change_request=self.change_request,
         )
@@ -102,8 +103,8 @@ class BpmnEditingService:
         for _ in range(max_num_of_iterations):
             attempts = 0
 
-            prompt = prepare_prompt(
-                "edit_bpmn_intermediate_step.txt",
+            prompt = self.prompt_processor.render_template(
+                "edit_bpmn_intermediate_step.jinja2",
                 process=str(updated_process),
             )
 
