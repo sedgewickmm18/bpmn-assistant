@@ -1,6 +1,7 @@
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade, MessageItem
-from bpmn_assistant.utils import message_history_to_string, prepare_prompt
+from bpmn_assistant.prompts import PromptTemplateProcessor
+from bpmn_assistant.utils import message_history_to_string
 
 
 def define_change_request(
@@ -17,8 +18,10 @@ def define_change_request(
     Returns:
         str: The change request
     """
-    prompt = prepare_prompt(
-        "define_change_request.txt",
+    prompt_processor = PromptTemplateProcessor()
+
+    prompt = prompt_processor.render_template(
+        "define_change_request.jinja2",
         process=str(process),
         message_history=message_history_to_string(message_history),
     )

@@ -4,7 +4,8 @@ from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade, MessageItem
-from bpmn_assistant.utils import message_history_to_string, prepare_prompt
+from bpmn_assistant.prompts import PromptTemplateProcessor
+from bpmn_assistant.utils import message_history_to_string
 
 
 def _validate_determine_intent(response: dict) -> None:
@@ -41,8 +42,10 @@ def determine_intent(
     Returns:
         dict: The response containing the intent
     """
-    prompt = prepare_prompt(
-        "determine_intent.txt",
+    prompt_processor = PromptTemplateProcessor()
+
+    prompt = prompt_processor.render_template(
+        "determine_intent.jinja2",
         message_history=message_history_to_string(message_history),
     )
 
