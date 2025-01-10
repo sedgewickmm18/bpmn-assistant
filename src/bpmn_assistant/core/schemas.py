@@ -6,6 +6,15 @@ from typing_extensions import Literal
 TaskType = Literal["task", "userTask", "serviceTask"]
 
 
+class MessageItem(BaseModel):
+    """
+    A message item used for LLM API communication.
+    """
+
+    role: str
+    content: str
+
+
 class BPMNTask(BaseModel):
     """
     Represents a BPMN task.
