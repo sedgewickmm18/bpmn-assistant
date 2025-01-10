@@ -44,6 +44,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Create .env file from example
+      run: cp src/bpmn_assistant/.env.example src/bpmn_assistant/.env
+
     - name: Build and start containers
       run: |
         docker compose build
