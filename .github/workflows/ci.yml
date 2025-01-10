@@ -38,3 +38,25 @@ jobs:
     - name: Test with pytest
       run: |
         uv run pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build and start containers
+      run: |
+        docker compose build
+        docker compose up -d
+
+    - name: Verify containers are running
+      run: |
+        # Check if all containers started successfully
+        if [ $(docker compose ps -q --status running | wc -l) -lt 3 ]; then
+          echo "Not all containers are running"
+          docker compose logs
+          exit 1
+        fi
+
+    - name: Clean up
+      run: docker compose down
