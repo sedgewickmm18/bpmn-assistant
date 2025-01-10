@@ -4,11 +4,12 @@ from typing import Optional
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core import LLMFacade, MessageItem
+from bpmn_assistant.prompts import PromptTemplateProcessor
 from bpmn_assistant.services.process_editing import (
     BpmnEditingService,
     define_change_request,
 )
-from bpmn_assistant.utils import message_history_to_string, prepare_prompt
+from bpmn_assistant.utils import message_history_to_string
 
 from .validate_bpmn import validate_bpmn
 
@@ -17,6 +18,9 @@ class BpmnModelingService:
     """
     Service for creating and editing BPMN processes.
     """
+
+    def __init__(self):
+        self.prompt_processor = PromptTemplateProcessor()
 
     def create_bpmn(
         self,
@@ -35,17 +39,20 @@ class BpmnModelingService:
             list: The BPMN process.
         """
 
-        prompt = prepare_prompt(
-            "create_bpmn.txt",
+        prompt = self.prompt_processor.render_template(
+            "create_bpmn.jinja2",
             message_history=message_history_to_string(message_history),
         )
 
         # FIXME: temporary workaround until o1 models support structured outputs
-        # If we have a text_llm_facade (o-series models), we prompt it to output the BPMN JSON, and then we pass it to the prepare_prompt as message history
+        # If we have a text_llm_facade (o-series models), we prompt it to output the BPMN JSON,
+        # and then we pass it to the render_template as message history
         if text_llm_facade:
             process: str = text_llm_facade.call(prompt)
             logger.debug(f"Generated BPMN process (o1-series models): {process}")
-            prompt = prepare_prompt("create_bpmn.txt", message_history=process)
+            prompt = self.prompt_processor.render_template(
+                "create_bpmn.jinja2", message_history=process
+            )
 
         attempts = 0
 
