@@ -44,12 +44,12 @@ class BpmnModelingService:
             message_history=message_history_to_string(message_history),
         )
 
-        # FIXME: temporary workaround until o1 models support structured outputs
-        # If we have a text_llm_facade (o-series models), we prompt it to output the BPMN JSON,
+        # FIXME: Temporary workaround until o1 models support structured outputs
+        # If we have a text_llm_facade (reasoning model), we prompt it to output the BPMN JSON,
         # and then we pass it to the render_template as message history
         if text_llm_facade:
             process: str = text_llm_facade.call(prompt)
-            logger.debug(f"Generated BPMN process (o1-series models): {process}")
+            logger.debug(f"Generated BPMN process (reasoning model): {process}")
             prompt = self.prompt_processor.render_template(
                 "create_bpmn.jinja2", message_history=process
             )

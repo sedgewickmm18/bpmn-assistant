@@ -113,7 +113,6 @@ class BpmnEditingService:
             while attempts < max_retries:
                 attempts += 1
 
-                # Get intermediate edit proposal
                 try:
                     edit_proposal: IntermediateEditProposal = self.llm_facade.call(
                         prompt, structured_output=IntermediateEditProposal
@@ -125,7 +124,6 @@ class BpmnEditingService:
                         logger.info("Edit process stopped.")
                         return updated_process
 
-                    # Update process based on the edit proposal
                     updated_process = self._update_process(
                         updated_process, edit_proposal
                     )

@@ -8,7 +8,6 @@ from bpmn_assistant.api.requests import (
     DetermineIntentRequest,
     ModifyBpmnRequest,
 )
-from bpmn_assistant.config import logger
 from bpmn_assistant.core import handle_exceptions
 from bpmn_assistant.core.enums import OutputMode
 from bpmn_assistant.services import (
@@ -79,26 +78,21 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     Modify the BPMN process based on the user query. If the request does not contain a BPMN JSON,
     then create a new BPMN process. Otherwise, edit the existing BPMN process.
     """
-    # TODO: fix once o1 API becomes available
     model = replace_reasoning_model(request.model)
+
     llm_facade = get_llm_facade(model)
     text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT)
 
     if request.process:
-        logger.info("Editing the BPMN process...")
         process = bpmn_modeling_service.edit_bpmn(
             llm_facade, text_llm_facade, request.process, request.message_history
         )
     else:
-        # TODO: fix once o1 API becomes available
-        if is_reasoning_model(request.model):
-            process = bpmn_modeling_service.create_bpmn(
-                llm_facade, request.message_history, text_llm_facade
-            )
-        else:
-            process = bpmn_modeling_service.create_bpmn(
-                llm_facade, request.message_history
-            )
+        process = bpmn_modeling_service.create_bpmn(
+            llm_facade,
+            request.message_history,
+            text_llm_facade if is_reasoning_model(request.model) else None,
+        )
 
     bpmn_xml_string = bpmn_xml_generator.create_bpmn_xml(process)
     return JSONResponse(content={"bpmn_xml": bpmn_xml_string, "bpmn_json": process})

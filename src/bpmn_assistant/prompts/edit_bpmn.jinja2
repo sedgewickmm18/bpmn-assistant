@@ -81,6 +81,35 @@
 
 ```json
 {
+  "function": "add_element",
+  "arguments": {
+    "element": {
+      "type": "parallelGateway",
+      "id": "parallel1",
+      "branches": [
+        [
+          {
+            "type": "task",
+            "id": "docTask1",
+            "label": "Review document"
+          },
+        ],
+        [
+          {
+            "type": "serviceTask",
+            "id": "notifyTask1",
+            "label": "Send email notification"
+          },
+        ]
+      ]
+    },
+    "after_id": "task5"
+  }
+}
+```
+
+```json
+{
   "function": "delete_element",
   "arguments": {
     "element_id": "exclusive2"
