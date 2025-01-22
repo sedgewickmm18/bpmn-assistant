@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
 
 TaskType = Literal["task", "userTask", "serviceTask"]
@@ -88,3 +88,22 @@ class ProcessModel(BaseModel):
     """
 
     process: List[BPMNElement]
+
+
+class EditProposal(BaseModel):
+    """
+    Represents an edit proposal for a BPMN process.
+    """
+
+    function: str
+    arguments: dict
+
+
+class StopSignal(BaseModel):
+    """
+    Represents a stop signal for the BPMN editing process.
+    """
+
+    stop: Literal[True]
+
+IntermediateEditProposal = RootModel[Union[EditProposal, StopSignal]]

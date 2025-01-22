@@ -1,9 +1,5 @@
-from typing import Literal, Optional
-
-from pydantic import BaseModel
-
 from bpmn_assistant.config import logger
-from bpmn_assistant.core import LLMFacade
+from bpmn_assistant.core import EditProposal, IntermediateEditProposal, LLMFacade
 from bpmn_assistant.core.exceptions import ProcessException
 from bpmn_assistant.prompts import PromptTemplateProcessor
 from bpmn_assistant.services.process_editing import (
@@ -14,17 +10,6 @@ from bpmn_assistant.services.process_editing import (
     update_element,
 )
 from bpmn_assistant.services.validate_bpmn import validate_element
-
-
-class EditProposal(BaseModel):
-    function: str
-    arguments: dict
-
-
-class IntermediateEditProposal(BaseModel):
-    function: str
-    arguments: dict
-    stop: Optional[Literal[True]] = None
 
 
 class BpmnEditingService:
