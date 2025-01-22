@@ -27,6 +27,7 @@ const Models = Object.freeze({
     "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct",
   QWEN_2_5_72B: "fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct",
   DEEPSEEK_V3: "fireworks_ai/accounts/fireworks/models/deepseek-v3",
+  DEEPSEEK_R1: "fireworks_ai/accounts/fireworks/models/deepseek-r1",
 });
 
 const Providers = Object.freeze({
@@ -91,6 +92,11 @@ export default {
         {
           value: Models.DEEPSEEK_V3,
           title: "Deepseek V3",
+          provider: Providers.FIREWORKS_AI,
+        },
+        {
+          value: Models.DEEPSEEK_R1,
+          title: "Deepseek R1",
           provider: Providers.FIREWORKS_AI,
         },
       ],

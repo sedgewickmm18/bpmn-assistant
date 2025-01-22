@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Any, Generator
 
 from litellm import completion
@@ -45,6 +46,18 @@ class FireworksAIProvider(LLMProvider):
         )
 
         raw_output = response.choices[0].message.content
+
+        if model == FireworksAIModels.DEEPSEEK_R1.value:
+            # Extract thinking phase and clean output
+            think_pattern = r"<think>(.*?)</think>"
+            think_match = re.search(think_pattern, raw_output, re.DOTALL)
+
+            if think_match:
+                thinking = think_match.group(1).strip()
+                logger.info(f"Model thinking phase: {thinking}")
+                raw_output = re.sub(
+                    think_pattern, "", raw_output, flags=re.DOTALL
+                ).strip()
 
         return self._process_response(raw_output)
 

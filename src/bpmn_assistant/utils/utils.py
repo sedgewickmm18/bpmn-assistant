@@ -67,24 +67,32 @@ def get_available_providers() -> dict:
     }
 
 
+def is_reasoning_model(model: str) -> bool:
+    return model in [
+        model.value
+        for model in [
+            OpenAIModels.O1,
+            OpenAIModels.O1_MINI,
+            FireworksAIModels.DEEPSEEK_R1,
+        ]
+    ]
+
+
 def replace_reasoning_model(model: str) -> str:
     """
-    Returns GPT-4o if o1-preview is requested, or GPT-4o-mini if o1-mini is requested.
-    Otherwise returns the original model.
+    Replaces reasoning models with non-reasoning models.
     """
     if model == OpenAIModels.O1.value:
         return OpenAIModels.GPT_4O.value
     elif model == OpenAIModels.O1_MINI.value:
         return OpenAIModels.GPT_4O_MINI.value
+    elif model == FireworksAIModels.DEEPSEEK_R1.value:
+        return FireworksAIModels.DEEPSEEK_V3.value
     return model
 
 
 def is_openai_model(model: str) -> bool:
     return model in [model.value for model in OpenAIModels]
-
-
-def is_reasoning_model(model: str) -> bool:
-    return model in [model.value for model in [OpenAIModels.O1, OpenAIModels.O1_MINI]]
 
 
 def is_anthropic_model(model: str) -> bool:
