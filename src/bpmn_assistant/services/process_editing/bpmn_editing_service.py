@@ -99,8 +99,10 @@ class BpmnEditingService:
             max_num_of_iterations: The maximum number of iterations to perform
         Returns:
             The updated process
+        Raises:
+            Exception: If the max number of retries or iterations is reached
         """
-        for _ in range(max_num_of_iterations):
+        for iteration_index in range(max_num_of_iterations):
             attempts = 0
 
             prompt = self.prompt_processor.render_template(
@@ -124,20 +126,20 @@ class BpmnEditingService:
                         return updated_process
 
                     # Update process based on the edit proposal
-                    try:
-                        updated_process = self._update_process(
-                            updated_process, edit_proposal
-                        )
-                    except ProcessException as e:
-                        logger.warning(
-                            f"Validation error (attempt {attempts}): {str(e)}"
-                        )
-                        prompt = (
-                            f"Editing error: {str(e)}. Provide a new edit proposal."
-                        )
-                except ValueError as e:
+                    updated_process = self._update_process(
+                        updated_process, edit_proposal
+                    )
+
+                    break
+
+                except (ValueError, ProcessException) as e:
                     logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
                     prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
+
+            else:
+                raise Exception(
+                    f"Edit iteration {iteration_index+1} failed after {max_retries} attempts."
+                )
 
         raise Exception("Max number of editing iterations reached.")
 
