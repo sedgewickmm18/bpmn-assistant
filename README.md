@@ -72,13 +72,13 @@ Note: You can use any combination of the API keys above, but at least one is req
 * GPT-4o mini
 * GPT-4o
 * o1-preview (reasoning model)
-* o1-mini (reasoning model)
+* o3-mini (reasoning model)
 
-> Note: o1-preview and o1-mini are used as reasoning models to enhance the application's capabilities:
+> Note: o1-preview and o3-mini are used as reasoning models to enhance the application's capabilities:
 > 1. They "think through" the process before creating BPMN diagrams, leading to more logical and coherent results
 > 2. They analyze and define change requests when editing diagrams, improving accuracy and consistency
 > 
-> These models are used in conjunction with their respective GPT-4o counterparts as they don't support structured outputs yet. While providing enhanced performance, they have longer response times and can incur significant costs.
+> These models are used in conjunction with GPT-4o as they don't support structured outputs yet. While providing enhanced performance, they have longer response times and can incur significant costs.
 
 
 ### Anthropic

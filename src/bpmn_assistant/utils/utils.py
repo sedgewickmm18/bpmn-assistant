@@ -72,7 +72,7 @@ def is_reasoning_model(model: str) -> bool:
         model.value
         for model in [
             OpenAIModels.O1,
-            OpenAIModels.O1_MINI,
+            OpenAIModels.O3_MINI,
             FireworksAIModels.DEEPSEEK_R1,
         ]
     ]
@@ -82,10 +82,8 @@ def replace_reasoning_model(model: str) -> str:
     """
     Replaces reasoning models with non-reasoning models.
     """
-    if model == OpenAIModels.O1.value:
+    if model in [OpenAIModels.O1.value, OpenAIModels.O3_MINI.value]:
         return OpenAIModels.GPT_4O.value
-    elif model == OpenAIModels.O1_MINI.value:
-        return OpenAIModels.GPT_4O_MINI.value
     elif model == FireworksAIModels.DEEPSEEK_R1.value:
         return FireworksAIModels.DEEPSEEK_V3.value
     return model

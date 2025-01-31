@@ -42,7 +42,7 @@ class OpenAIProvider(LLMProvider):
             "messages": messages,  # type: ignore[arg-type]
         }
 
-        if model == OpenAIModels.O1.value or model == OpenAIModels.O1_MINI.value:
+        if model in [OpenAIModels.O1.value, OpenAIModels.O3_MINI.value]:
             logger.info("Using o-series models")
             # https://platform.openai.com/docs/guides/reasoning#limitations
             # constraining the max_completion_tokens can lead to empty responses
