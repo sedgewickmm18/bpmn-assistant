@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import ValidationError
 
 from bpmn_assistant.core.enums import BPMNElementType
@@ -14,8 +12,13 @@ def validate_bpmn(process: list) -> None:
     Raises:
         ValueError: If the BPMN process, or any of its elements, is invalid.
     """
+    seen_ids = set()
     for element in process:
         validate_element(element)
+        
+        if element["id"] in seen_ids:
+            raise ValueError(f"Duplicate element ID found: {element['id']}")
+        seen_ids.add(element["id"])
 
         if element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
             for branch in element["branches"]:

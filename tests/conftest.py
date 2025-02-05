@@ -23,6 +23,15 @@ def openai_facade():
 
 
 @pytest.fixture
+def duplicate_id_process():
+    return [
+        {"type": "startEvent", "id": "start"},
+        {"type": "task", "id": "task1", "label": "Perform a simple task"},
+        {"type": "task", "id": "task1", "label": "Perform a second task"},
+    ]
+
+
+@pytest.fixture
 def empty_gateway_path_process():
     """
     Description: A process that contains an exclusive gateway with an empty path.
