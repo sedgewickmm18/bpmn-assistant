@@ -20,20 +20,20 @@ export default {
   },
   computed: {
     roleDisplay() {
-      return this.role === "user" ? "You" : "BPMN Assistant";
+      return this.role === 'user' ? 'You' : 'BPMN Assistant';
     },
     formattedContent() {
       return this.content
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\n- /g, "<br>• ")
-        .replace(/\n/g, "<br>");
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n- /g, '<br>• ')
+        .replace(/\n/g, '<br>');
     },
   },
   methods: {
     getBackgroundColor() {
-      return this.role === "user"
-        ? "rgba(0, 100, 255, 0.1)"
-        : "rgba(255, 0, 0, 0.1)";
+      return this.role === 'user'
+        ? 'rgba(0, 100, 255, 0.1)'
+        : 'rgba(255, 0, 0, 0.1)';
     },
   },
 };

@@ -14,8 +14,8 @@ class AnthropicModels(Enum):
 
 
 class GoogleModels(Enum):
-    GEMINI_2_FLASH = "gemini-2.0-flash-exp"
-    GEMINI_1_5_PRO = "gemini-1.5-pro"
+    GEMINI_2_FLASH = "gemini-2.0-flash-001"
+    GEMINI_2_PRO = "gemini-2.0-pro-exp-02-05"
 
 
 class FireworksAIModels(Enum):

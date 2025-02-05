@@ -22,33 +22,33 @@
 </template>
 
 <script>
-import BpmnModeler from "bpmn-js/lib/Modeler";
-import ChatInterface from "../components/ChatInterface.vue";
+import BpmnModeler from 'bpmn-js/lib/Modeler';
+import ChatInterface from '../components/ChatInterface.vue';
 // import initialDiagram from "../assets/initialDiagram.js";
-import "bpmn-js/dist/assets/diagram-js.css";
-import "bpmn-js/dist/assets/bpmn-js.css";
-import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
+import 'bpmn-js/dist/assets/diagram-js.css';
+import 'bpmn-js/dist/assets/bpmn-js.css';
+import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 export default {
-  name: "App",
+  name: 'App',
   components: {
     ChatInterface,
   },
   data() {
     return {
-      bpmnXml: "",
+      bpmnXml: '',
       process: null, // Process in JSON format
       bpmnViewer: null,
       snackbar: {
         show: false,
-        text: "",
-        color: "success",
+        text: '',
+        color: 'success',
       },
     };
   },
   mounted() {
     this.bpmnViewer = new BpmnModeler({
-      container: "#canvas",
+      container: '#canvas',
     });
 
     // this.bpmnViewer
@@ -68,7 +68,7 @@ export default {
     }
   },
   methods: {
-    showSnackbar(text, color = "success") {
+    showSnackbar(text, color = 'success') {
       this.snackbar.text = text;
       this.snackbar.color = color;
       this.snackbar.show = true;
@@ -77,21 +77,21 @@ export default {
       event.preventDefault(); // Prevent the browser from default file handling
       if (event.dataTransfer.items) {
         for (let i = 0; i < event.dataTransfer.items.length; i++) {
-          if (event.dataTransfer.items[i].kind === "file") {
+          if (event.dataTransfer.items[i].kind === 'file') {
             const file = event.dataTransfer.items[i].getAsFile();
 
-            if (file.name.endsWith(".bpmn")) {
+            if (file.name.endsWith('.bpmn')) {
               const reader = new FileReader();
               reader.onload = async (e) => {
                 const xmlContent = e.target.result;
                 try {
                   await this.bpmnViewer.importXML(xmlContent);
-                  this.bpmnViewer.get("canvas").zoom("fit-viewport");
-                  console.log("BPMN diagram loaded successfully");
+                  this.bpmnViewer.get('canvas').zoom('fit-viewport');
+                  console.log('BPMN diagram loaded successfully');
                   this.bpmnXml = xmlContent;
                   await this.createBpmnJson();
                 } catch (err) {
-                  console.error("Failed to import BPMN diagram:", err);
+                  console.error('Failed to import BPMN diagram:', err);
                 }
               };
               reader.readAsText(file);
@@ -102,9 +102,9 @@ export default {
     },
     async createBpmnJson() {
       try {
-        const response = await fetch("http://localhost:8000/bpmn_to_json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const response = await fetch('http://localhost:8000/bpmn_to_json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ bpmn_xml: this.bpmnXml }),
         });
 
@@ -113,24 +113,24 @@ export default {
         }
 
         this.process = await response.json();
-        console.log("BPMN JSON created successfully:", this.process);
-        this.showSnackbar("BPMN successfully uploaded", "success");
+        console.log('BPMN JSON created successfully:', this.process);
+        this.showSnackbar('BPMN successfully uploaded', 'success');
       } catch (error) {
-        console.error("Error creating BPMN JSON:", error);
+        console.error('Error creating BPMN JSON:', error);
         this.showSnackbar(
-          "There was a problem while loading the BPMN file",
-          "error"
+          'There was a problem while loading the BPMN file',
+          'error'
         );
       }
     },
     async handleBpmnXml(bpmnXmlValue) {
-      if (bpmnXmlValue === "") {
+      if (bpmnXmlValue === '') {
         if (this.bpmnViewer) {
           this.bpmnViewer.destroy();
         }
 
         this.bpmnViewer = new BpmnModeler({
-          container: "#canvas",
+          container: '#canvas',
         });
         return;
       }
@@ -139,7 +139,7 @@ export default {
         // Auto-layout of the BPMN diagram
         const layoutedXml = await this.processDiagram(bpmnXmlValue);
         if (!layoutedXml) {
-          throw new Error("Failed to layout the BPMN diagram");
+          throw new Error('Failed to layout the BPMN diagram');
         }
         this.bpmnXml = layoutedXml;
         if (this.bpmnViewer) {
@@ -147,29 +147,29 @@ export default {
             .importXML(layoutedXml)
             .then((result) => {
               const { warnings } = result;
-              console.log("BPMN diagram imported successfully", warnings);
-              this.bpmnViewer.get("canvas").zoom("fit-viewport");
+              console.log('BPMN diagram imported successfully', warnings);
+              this.bpmnViewer.get('canvas').zoom('fit-viewport');
             })
             .catch((err) => {
-              console.error("Failed to import BPMN diagram:", err);
+              console.error('Failed to import BPMN diagram:', err);
             });
         }
       } catch (error) {
-        console.error("Error handling BPMN XML:", error);
+        console.error('Error handling BPMN XML:', error);
       }
     },
     async processDiagram(bpmnDiagram) {
       try {
-        const response = await fetch("http://localhost:3001/process-bpmn", {
-          method: "POST",
+        const response = await fetch('http://localhost:3001/process-bpmn', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ bpmnXml: bpmnDiagram }),
         });
 
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          throw new Error('Network response was not ok');
         }
 
         const { layoutedXml } = await response.json();
@@ -178,16 +178,16 @@ export default {
 
         return layoutedXml;
       } catch (error) {
-        console.error("Failed to process the diagram:", error);
+        console.error('Failed to process the diagram:', error);
       }
     },
     async downloadBpmnFile() {
       const { xml } = await this.bpmnViewer.saveXML();
-      const blob = new Blob([xml], { type: "text/xml" });
+      const blob = new Blob([xml], { type: 'text/xml' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = "diagram.bpmn";
+      a.download = 'diagram.bpmn';
       a.click();
     },
     setBpmnJson(value) {

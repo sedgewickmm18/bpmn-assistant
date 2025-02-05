@@ -129,13 +129,13 @@
 </template>
 
 <script>
-import ModelPicker from "./ModelPicker.vue";
-import MessageCard from "./MessageCard.vue";
-import { toRaw } from "vue";
-import Intent from "../enums/Intent";
+import ModelPicker from './ModelPicker.vue';
+import MessageCard from './MessageCard.vue';
+import { toRaw } from 'vue';
+import Intent from '../enums/Intent';
 
 export default {
-  name: "ChatInterface",
+  name: 'ChatInterface',
   components: {
     ModelPicker,
     MessageCard,
@@ -151,38 +151,38 @@ export default {
     return {
       isLoading: false,
       messages: [],
-      currentInput: "",
-      selectedModel: "",
+      currentInput: '',
+      selectedModel: '',
       hasError: false,
     };
   },
   methods: {
     reset() {
       this.messages = [];
-      this.currentInput = "";
+      this.currentInput = '';
       this.hasError = false;
       this.onBpmnJsonReceived(null);
-      this.onBpmnXmlReceived("");
+      this.onBpmnXmlReceived('');
     },
     setSelectedModel(model) {
       this.selectedModel = model;
-      console.log("Selected model:", model);
+      console.log('Selected model:', model);
     },
     handleKeyDown(event) {
-      if (event.shiftKey && event.key === "Enter") {
+      if (event.shiftKey && event.key === 'Enter') {
         // Manually insert a newline character
         event.preventDefault();
         const cursorPosition = event.target.selectionStart;
         const textBeforeCursor = this.currentInput.slice(0, cursorPosition);
         const textAfterCursor = this.currentInput.slice(cursorPosition);
-        this.currentInput = textBeforeCursor + "\n" + textAfterCursor;
+        this.currentInput = textBeforeCursor + '\n' + textAfterCursor;
 
         // Move the cursor to the correct position after inserting the newline
         this.$nextTick(() => {
           event.target.selectionStart = event.target.selectionEnd =
             cursorPosition + 1;
         });
-      } else if (event.key === "Enter") {
+      } else if (event.key === 'Enter') {
         // Submit message when only Enter is pressed
         event.preventDefault();
         this.handleMessageSubmit();
@@ -194,20 +194,20 @@ export default {
       }
 
       if (!this.selectedModel) {
-        alert("You need to select a model first.");
+        alert('You need to select a model first.');
         return;
       }
 
       if (this.currentInput.length > 20000) {
-        alert("Message is too long. Please keep it under 20,000 characters.");
+        alert('Message is too long. Please keep it under 20,000 characters.');
         return;
       }
 
       // Clear any previous errors
       this.hasError = false;
 
-      this.messages.push({ content: this.currentInput, role: "user" });
-      this.currentInput = "";
+      this.messages.push({ content: this.currentInput, role: 'user' });
+      this.currentInput = '';
 
       this.$nextTick(() => {
         this.scrollToBottom();
@@ -237,7 +237,7 @@ export default {
           });
           break;
         default:
-          console.error("Unknown intent:", intent);
+          console.error('Unknown intent:', intent);
       }
     },
     async determineIntent() {
@@ -247,9 +247,9 @@ export default {
       };
 
       try {
-        const response = await fetch("http://localhost:8000/determine_intent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const response = await fetch('http://localhost:8000/determine_intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
 
@@ -262,14 +262,14 @@ export default {
         const data = await response.json();
 
         if (!Object.values(Intent).includes(data.intent)) {
-          console.error("Unknown intent:", data.intent);
+          console.error('Unknown intent:', data.intent);
           this.hasError = true;
           return;
         }
 
         return data.intent;
       } catch (error) {
-        console.error("Error determining intent:", error);
+        console.error('Error determining intent:', error);
         this.hasError = true;
       }
     },
@@ -282,9 +282,9 @@ export default {
           needs_to_be_final_comment: needsToBeFinalComment,
         };
 
-        const response = await fetch("http://localhost:8000/talk", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const response = await fetch('http://localhost:8000/talk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
 
@@ -300,22 +300,22 @@ export default {
         const updateOrAddLastMessage = (newText) => {
           if (
             this.messages.length > 0 &&
-            this.messages[this.messages.length - 1].role === "assistant"
+            this.messages[this.messages.length - 1].role === 'assistant'
           ) {
             const lastMessage = this.messages[this.messages.length - 1];
-            lastMessage.content = (lastMessage.content || "") + newText;
+            lastMessage.content = (lastMessage.content || '') + newText;
           } else {
-            this.messages.push({ content: newText, role: "assistant" });
+            this.messages.push({ content: newText, role: 'assistant' });
           }
         };
 
         const processText = async ({ done, value }) => {
           if (done) {
-            console.log("Stream complete");
+            console.log('Stream complete');
             return;
           }
 
-          const chunk = new TextDecoder("utf-8").decode(value);
+          const chunk = new TextDecoder('utf-8').decode(value);
           // console.log(JSON.stringify(chunk));
           updateOrAddLastMessage(chunk);
 
@@ -324,7 +324,7 @@ export default {
 
         return reader.read().then(processText);
       } catch (error) {
-        console.error("Error responding to user query:", error);
+        console.error('Error responding to user query:', error);
         this.hasError = true;
       }
     },
@@ -336,9 +336,9 @@ export default {
           model: selectedModel,
         };
 
-        const response = await fetch("http://localhost:8000/modify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const response = await fetch('http://localhost:8000/modify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
 
@@ -351,20 +351,20 @@ export default {
 
         const data = await response.json();
 
-        console.log("BPMN JSON received:", data.bpmn_json);
+        console.log('BPMN JSON received:', data.bpmn_json);
 
         return {
           bpmnXml: data.bpmn_xml,
           bpmnJson: data.bpmn_json,
         };
       } catch (error) {
-        console.error("Error modifying BPMN:", error);
+        console.error('Error modifying BPMN:', error);
         this.isLoading = false;
         this.hasError = true;
       }
     },
     scrollToBottom() {
-      const messageContainer = this.$el.querySelector(".message-container");
+      const messageContainer = this.$el.querySelector('.message-container');
       messageContainer.scrollTop = messageContainer.scrollHeight;
     },
   },
@@ -372,7 +372,7 @@ export default {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500&display=swap');
 
 .chat-interface {
   display: flex;
@@ -420,7 +420,7 @@ export default {
 }
 
 .app-title {
-  font-family: "Outfit", sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: 0.5px;

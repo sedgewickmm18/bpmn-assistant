@@ -15,88 +15,88 @@
 
 <script>
 const Models = Object.freeze({
-  GPT_4O_MINI: "gpt-4o-mini",
-  GPT_4O: "gpt-4o",
-  O1: "o1-preview",
-  O3_MINI: "o3-mini",
-  HAIKU_3_5: "claude-3-5-haiku-20241022",
-  SONNET_3_5: "claude-3-5-sonnet-20241022",
-  GEMINI_1_5_PRO: "gemini-1.5-pro",
-  GEMINI_2_FLASH: "gemini-2.0-flash-exp",
+  GPT_4O_MINI: 'gpt-4o-mini',
+  GPT_4O: 'gpt-4o',
+  O1: 'o1-preview',
+  O3_MINI: 'o3-mini',
+  HAIKU_3_5: 'claude-3-5-haiku-20241022',
+  SONNET_3_5: 'claude-3-5-sonnet-20241022',
+  GEMINI_2_PRO: 'gemini-2.0-pro-exp-02-05',
+  GEMINI_2_FLASH: 'gemini-2.0-flash-001',
   LLAMA_3_3_70B:
-    "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct",
-  QWEN_2_5_72B: "fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct",
-  DEEPSEEK_V3: "fireworks_ai/accounts/fireworks/models/deepseek-v3",
-  DEEPSEEK_R1: "fireworks_ai/accounts/fireworks/models/deepseek-r1",
+    'fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct',
+  QWEN_2_5_72B: 'fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct',
+  DEEPSEEK_V3: 'fireworks_ai/accounts/fireworks/models/deepseek-v3',
+  DEEPSEEK_R1: 'fireworks_ai/accounts/fireworks/models/deepseek-r1',
 });
 
 const Providers = Object.freeze({
-  OPENAI: "openai",
-  ANTHROPIC: "anthropic",
-  GOOGLE: "google",
-  FIREWORKS_AI: "fireworks_ai",
+  OPENAI: 'openai',
+  ANTHROPIC: 'anthropic',
+  GOOGLE: 'google',
+  FIREWORKS_AI: 'fireworks_ai',
 });
 
 export default {
-  name: "ModelPicker",
+  name: 'ModelPicker',
   data() {
     return {
-      selectedModel: "",
+      selectedModel: '',
       models: [
         {
           value: Models.GPT_4O_MINI,
-          title: "GPT-4o mini",
+          title: 'GPT-4o mini',
           provider: Providers.OPENAI,
         },
-        { value: Models.GPT_4O, title: "GPT-4o", provider: Providers.OPENAI },
+        { value: Models.GPT_4O, title: 'GPT-4o', provider: Providers.OPENAI },
         {
           value: Models.O1,
-          title: "o1",
+          title: 'o1',
           provider: Providers.OPENAI,
         },
         {
           value: Models.O3_MINI,
-          title: "o3-mini",
+          title: 'o3-mini',
           provider: Providers.OPENAI,
         },
         {
           value: Models.HAIKU_3_5,
-          title: "Claude 3.5 Haiku",
+          title: 'Claude 3.5 Haiku',
           provider: Providers.ANTHROPIC,
         },
         {
           value: Models.SONNET_3_5,
-          title: "Claude 3.5 Sonnet",
+          title: 'Claude 3.5 Sonnet',
           provider: Providers.ANTHROPIC,
         },
         {
           value: Models.GEMINI_2_FLASH,
-          title: "Gemini 2.0 Flash",
+          title: 'Gemini 2.0 Flash',
           provider: Providers.GOOGLE,
         },
         {
-          value: Models.GEMINI_1_5_PRO,
-          title: "Gemini 1.5 Pro",
+          value: Models.GEMINI_2_PRO,
+          title: 'Gemini 2.0 Pro',
           provider: Providers.GOOGLE,
         },
         {
           value: Models.LLAMA_3_3_70B,
-          title: "Llama 3.3 70B",
+          title: 'Llama 3.3 70B',
           provider: Providers.FIREWORKS_AI,
         },
         {
           value: Models.QWEN_2_5_72B,
-          title: "Qwen 2.5 72B",
+          title: 'Qwen 2.5 72B',
           provider: Providers.FIREWORKS_AI,
         },
         {
           value: Models.DEEPSEEK_V3,
-          title: "Deepseek V3",
+          title: 'Deepseek V3',
           provider: Providers.FIREWORKS_AI,
         },
         {
           value: Models.DEEPSEEK_R1,
-          title: "Deepseek R1",
+          title: 'Deepseek R1',
           provider: Providers.FIREWORKS_AI,
         },
       ],
@@ -113,15 +113,15 @@ export default {
   methods: {
     onModelChange(model) {
       this.selectedModel = model;
-      this.$emit("select-model", model);
+      this.$emit('select-model', model);
     },
     async fetchAvailableProviders() {
       try {
         const response = await fetch(
-          "http://localhost:8000/available_providers",
+          'http://localhost:8000/available_providers',
           {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
           }
         );
 
@@ -145,7 +145,7 @@ export default {
           this.onModelChange(Models.LLAMA_3_3_70B);
         }
       } catch (error) {
-        console.error("Error fetching available providers", error);
+        console.error('Error fetching available providers', error);
       }
     },
   },
