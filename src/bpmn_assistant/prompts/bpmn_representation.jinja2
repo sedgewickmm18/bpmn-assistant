@@ -6,6 +6,7 @@ The BPMN JSON representation uses a sequence of elements to describe the process
 
 Specify the task type in the 'type' field. Only "task", "userTask" and "serviceTask" options are supported.
 Always try to specify the specific task type (e.g. 'userTask', 'serviceTask') instead of just 'task' if the task is performed by a user or an automated system.
+Each task must be atomic - representing a single unit of work. Break down complex activities into multiple separate tasks.
 
 ```json
 {
