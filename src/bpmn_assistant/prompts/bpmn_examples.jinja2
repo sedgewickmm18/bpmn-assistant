@@ -229,3 +229,57 @@ Textual description: "The process starts with a decision. If Option A is selecte
   ]
 }
 ```
+
+---
+
+Textual description: "An order process starts when a customer submits an order. The order is then processed by the system. If the order is valid, it is fulfilled and the process ends with a successful delivery. If the order is invalid, the process ends with order rejection."
+
+```json
+{
+  "process": [
+    {
+      "type": "startEvent",
+      "id": "start",
+      "label": "Order submitted"
+    },
+    {
+      "type": "task",
+      "id": "task1",
+      "label": "Process order"
+    },
+    {
+      "type": "exclusiveGateway",
+      "id": "gateway1",
+      "label": "Order valid?",
+      "has_join": false,
+      "branches": [
+        {
+          "condition": "Yes",
+          "path": [
+            {
+              "type": "task",
+              "id": "task2",
+              "label": "Fulfill order"
+            },
+            {
+              "type": "endEvent",
+              "id": "end1",
+              "label": "Order delivered"
+            }
+          ]
+        },
+        {
+          "condition": "No",
+          "path": [
+            {
+              "type": "endEvent",
+              "id": "end2",
+              "label": "Order rejected"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```

@@ -572,3 +572,27 @@ def bpmn_xml_eg_empty_path():
     Description: A BPMN XML string that represents a process with an exclusive gateway that contains an empty path.
     """
     return load_bpmn("eg_empty_path.bpmn")
+
+
+@pytest.fixture
+def labeled_events_process():
+    """
+    Description: A process that contains events with labels.
+    """
+    return [
+        {
+            "type": "startEvent",
+            "id": "start1",
+            "label": "Order received"
+        },
+        {
+            "type": "task",
+            "id": "task1",
+            "label": "Process order"
+        },
+        {
+            "type": "endEvent",
+            "id": "end1",
+            "label": "Order completed"
+        }
+    ]

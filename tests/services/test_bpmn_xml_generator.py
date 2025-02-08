@@ -79,3 +79,11 @@ class TestBpmnXmlGenerator:
         result_tree = ET.ElementTree(ET.fromstring(result))
         expected_tree = ET.ElementTree(ET.fromstring(expected_xml))
         assert elements_equal(result_tree.getroot(), expected_tree.getroot())
+
+    def test_create_bpmn_xml_labeled_events(self, labeled_events_process):
+        xml_generator = BpmnXmlGenerator()
+        result = xml_generator.create_bpmn_xml(labeled_events_process)
+        expected_xml = '<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="definitions_1"><process id="Process_1" isExecutable="false"><startEvent id="start1" name="Order received"><outgoing>start1-task1</outgoing></startEvent><task id="task1" name="Process order"><incoming>start1-task1</incoming><outgoing>task1-end1</outgoing></task><endEvent id="end1" name="Order completed"><incoming>task1-end1</incoming></endEvent><sequenceFlow id="start1-task1" sourceRef="start1" targetRef="task1" /><sequenceFlow id="task1-end1" sourceRef="task1" targetRef="end1" /></process></definitions>'
+        result_tree = ET.ElementTree(ET.fromstring(result))
+        expected_tree = ET.ElementTree(ET.fromstring(expected_xml))
+        assert elements_equal(result_tree.getroot(), expected_tree.getroot())
