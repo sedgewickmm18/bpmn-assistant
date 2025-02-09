@@ -308,7 +308,9 @@ class BpmnJsonGenerator:
                     "id": elem_id,
                 }
                 if tag in labeled_elements:
-                    self.elements[elem_id]["label"] = elem.get("name")
+                    name = elem.get("name")
+                    if name:  # Only add label if name exists and is not empty
+                        self.elements[elem_id]["label"] = name
             elif tag == "sequenceFlow":
                 self.flows[elem_id] = {
                     "id": elem_id,

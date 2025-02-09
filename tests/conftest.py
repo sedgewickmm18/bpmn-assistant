@@ -596,3 +596,9 @@ def labeled_events_process():
             "label": "Order completed"
         }
     ]
+
+
+@pytest.fixture
+def bpmn_xml_labeled_events():
+    """Description: BPMN XML with labeled start and end events."""
+    return load_bpmn("labeled_events.bpmn")

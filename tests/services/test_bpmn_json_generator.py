@@ -723,3 +723,28 @@ class TestBpmnJsonGenerator:
         ]
 
         assert result == expected
+
+    def test_create_bpmn_json_labeled_events(self, bpmn_xml_labeled_events):
+        bpmn_json_generator = BpmnJsonGenerator()
+
+        result = bpmn_json_generator.create_bpmn_json(bpmn_xml_labeled_events)
+
+        expected = [
+            {
+                "type": "startEvent",
+                "id": "StartEvent_1ns34q4",
+                "label": "Customer request",
+            },
+            {
+                "type": "task",
+                "id": "Activity_03wbg7f",
+                "label": "Process request",
+            },
+            {
+                "type": "endEvent",
+                "id": "Event_0h3mtq5",
+                "label": "Request completed",
+            },
+        ]
+
+        assert result == expected
