@@ -294,6 +294,8 @@ class BpmnJsonGenerator:
             BPMNElementType.USER_TASK.value,
             BPMNElementType.SERVICE_TASK.value,
             BPMNElementType.EXCLUSIVE_GATEWAY.value,
+            BPMNElementType.START_EVENT.value,
+            BPMNElementType.END_EVENT.value,
         }
 
         for elem in process:
