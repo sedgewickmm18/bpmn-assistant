@@ -31,7 +31,7 @@ def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON) -> LLM
         api_key = os.getenv("ANTHROPIC_API_KEY")
         provider = Provider.ANTHROPIC
     elif is_google_model(model):
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY")
         provider = Provider.GOOGLE
     elif is_fireworks_ai_model(model):
         api_key = os.getenv("FIREWORKS_AI_API_KEY")
@@ -51,12 +51,12 @@ def get_available_providers() -> dict:
     load_dotenv(override=True)
     openai_api_key = os.getenv("OPENAI_API_KEY")
     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-    google_api_key = os.getenv("GOOGLE_API_KEY")
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
     fireworks_api_key = os.getenv("FIREWORKS_AI_API_KEY")
 
     openai_present = openai_api_key is not None and len(openai_api_key) > 0
     anthropic_present = anthropic_api_key is not None and len(anthropic_api_key) > 0
-    google_present = google_api_key is not None and len(google_api_key) > 0
+    google_present = gemini_api_key is not None and len(gemini_api_key) > 0
     fireworks_ai_present = fireworks_api_key is not None and len(fireworks_api_key) > 0
 
     return {

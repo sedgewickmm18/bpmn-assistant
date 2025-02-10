@@ -20,8 +20,8 @@ const Models = Object.freeze({
   O3_MINI: 'o3-mini',
   HAIKU_3_5: 'claude-3-5-haiku-20241022',
   SONNET_3_5: 'claude-3-5-sonnet-20241022',
-  GEMINI_2_PRO: 'gemini-2.0-pro-exp-02-05',
-  GEMINI_2_FLASH: 'gemini-2.0-flash-001',
+  GEMINI_2_PRO: 'gemini/gemini-2.0-pro-exp-02-05',
+  GEMINI_2_FLASH: 'gemini/gemini-2.0-flash-001',
   LLAMA_3_3_70B:
     'fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct',
   QWEN_2_5_72B: 'fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct',

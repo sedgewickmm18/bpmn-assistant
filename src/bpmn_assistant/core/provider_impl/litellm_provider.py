@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core.enums.message_roles import MessageRole
-from bpmn_assistant.core.enums.models import FireworksAIModels, OpenAIModels
+from bpmn_assistant.core.enums.models import FireworksAIModels, GoogleModels, OpenAIModels
 from bpmn_assistant.core.enums.output_modes import OutputMode
 from bpmn_assistant.core.llm_provider import LLMProvider
 
@@ -18,6 +18,7 @@ class LiteLLMProvider(LLMProvider):
         self.output_mode = output_mode
         os.environ["FIREWORKS_AI_API_KEY"] = api_key
         os.environ["OPENAI_API_KEY"] = api_key
+        os.environ["GEMINI_API_KEY"] = api_key
 
     def call(
         self,
@@ -106,7 +107,7 @@ class LiteLLMProvider(LLMProvider):
         messages.append({"role": message_role, "content": content})
 
     def check_model_compatibility(self, model: str) -> bool:
-        return model in [m.value for m in FireworksAIModels] or model in [m.value for m in OpenAIModels]
+        return model in [m.value for m in FireworksAIModels] or model in [m.value for m in OpenAIModels] or model in [m.value for m in GoogleModels]
 
     def _process_response(self, raw_output: str) -> str | dict[str, Any]:
         """
