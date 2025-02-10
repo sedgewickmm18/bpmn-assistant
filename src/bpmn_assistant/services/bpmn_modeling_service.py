@@ -46,21 +46,19 @@ class BpmnModelingService:
 
         while attempts < max_retries:
             attempts += 1
-            response = llm_facade.call(prompt)
-
             try:
+                response = llm_facade.call(prompt)
                 process = response["process"]
                 validate_bpmn(process)
                 logger.debug(
                     f"Generated BPMN process:\n{json.dumps(process, indent=2)}"
                 )
                 return process  # Return the process if it's valid
-            except ValueError as e:
+            except (ValueError, Exception) as e:
                 logger.warning(
-                    f"Validation error (attempt {attempts}): {str(e)}\n"
+                    f"Error (attempt {attempts}): {str(e)}\n"
                     f"Traceback: {traceback.format_exc()}"
                 )
-
                 prompt = f"Error: {str(e)}. Try again."
 
         raise Exception(
