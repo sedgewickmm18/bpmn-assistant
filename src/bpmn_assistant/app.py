@@ -18,10 +18,9 @@ from bpmn_assistant.services import (
     determine_intent,
 )
 from bpmn_assistant.utils import (
+    replace_reasoning_model,
     get_available_providers,
     get_llm_facade,
-    is_reasoning_model,
-    replace_reasoning_model,
 )
 
 app = FastAPI()
@@ -78,9 +77,7 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     Modify the BPMN process based on the user query. If the request does not contain a BPMN JSON,
     then create a new BPMN process. Otherwise, edit the existing BPMN process.
     """
-    model = replace_reasoning_model(request.model)
-
-    llm_facade = get_llm_facade(model)
+    llm_facade = get_llm_facade(request.model)
     text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT)
 
     if request.process:
@@ -91,7 +88,6 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
         process = bpmn_modeling_service.create_bpmn(
             llm_facade,
             request.message_history,
-            text_llm_facade if is_reasoning_model(request.model) else None,
         )
 
     bpmn_xml_string = bpmn_xml_generator.create_bpmn_xml(process)
@@ -101,7 +97,6 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
 @app.post("/talk")
 async def _talk(request: ConversationalRequest) -> StreamingResponse:
     model = replace_reasoning_model(request.model)
-
     conversational_service = ConversationalService(model)
 
     if request.needs_to_be_final_comment:

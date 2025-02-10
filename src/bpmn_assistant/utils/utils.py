@@ -66,28 +66,15 @@ def get_available_providers() -> dict:
         "fireworks_ai": fireworks_ai_present,
     }
 
-
-def is_reasoning_model(model: str) -> bool:
-    return model in [
-        model.value
-        for model in [
-            OpenAIModels.O1,
-            OpenAIModels.O3_MINI,
-            FireworksAIModels.DEEPSEEK_R1,
-        ]
-    ]
-
-
 def replace_reasoning_model(model: str) -> str:
     """
-    Replaces reasoning models with non-reasoning models.
+    Replaces reasoning models with more lightweight models.
     """
-    if model in [OpenAIModels.O1.value, OpenAIModels.O3_MINI.value]:
-        return OpenAIModels.GPT_4O.value
+    if model == OpenAIModels.O3_MINI.value:
+        return OpenAIModels.GPT_4O_MINI.value
     elif model == FireworksAIModels.DEEPSEEK_R1.value:
         return FireworksAIModels.DEEPSEEK_V3.value
     return model
-
 
 def is_openai_model(model: str) -> bool:
     return model in [model.value for model in OpenAIModels]

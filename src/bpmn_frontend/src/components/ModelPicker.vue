@@ -17,7 +17,6 @@
 const Models = Object.freeze({
   GPT_4O_MINI: 'gpt-4o-mini',
   GPT_4O: 'gpt-4o',
-  O1: 'o1-preview',
   O3_MINI: 'o3-mini',
   HAIKU_3_5: 'claude-3-5-haiku-20241022',
   SONNET_3_5: 'claude-3-5-sonnet-20241022',
@@ -49,11 +48,6 @@ export default {
           provider: Providers.OPENAI,
         },
         { value: Models.GPT_4O, title: 'GPT-4o', provider: Providers.OPENAI },
-        {
-          value: Models.O1,
-          title: 'o1',
-          provider: Providers.OPENAI,
-        },
         {
           value: Models.O3_MINI,
           title: 'o3-mini',

@@ -4,7 +4,6 @@ from enum import Enum
 class OpenAIModels(Enum):
     GPT_4O_MINI = "gpt-4o-mini"
     GPT_4O = "gpt-4o"
-    O1 = "o1-preview"
     O3_MINI = "o3-mini"
 
 
