@@ -31,19 +31,16 @@ class LiteLLMProvider(LLMProvider):
     ) -> str | dict[str, Any]:
         messages.append({"role": "user", "content": prompt})
 
-        response_format = (
-            structured_output
-            if structured_output is not None
-            else (
-                {"type": "json_object"} if self.output_mode == OutputMode.JSON else None
-            )
-        )
-
         params = {
             "model": model,
-            "response_format": response_format,
             "messages": messages,
         }
+
+        # Google's structured output does not support type unions
+        if structured_output is not None and model not in [m.value for m in GoogleModels]:
+            params["response_format"] = structured_output
+        elif self.output_mode == OutputMode.JSON:
+            params["response_format"] = {"type": "json_object"}
 
         if model != OpenAIModels.O3_MINI.value:
             params["max_tokens"] = max_tokens
