@@ -12,7 +12,7 @@ class BpmnJsonGenerator:
 
     def __init__(self):
         self.elements: dict[str, dict[str, Any]] = {}
-        self.flows: dict[str, dict[str, str]] = {}
+        self.flows: dict[str, dict[str, Any]] = {}
         self.process: list[dict[str, Any]] = []
 
     def _find_process_element(self, root: ET.Element) -> ET.Element:
@@ -193,6 +193,10 @@ class BpmnJsonGenerator:
                         sub_branch.update(sub_branch_result)
                 else:
                     join_id = self._find_common_branch_endpoint(last_element["id"])
+
+                    if join_id is None:
+                        raise ValueError("Exclusive gateway should have a corresponding join gateway")
+
                     join_outgoing_flows = self._get_outgoing_flows(join_id)
 
                     if len(join_outgoing_flows) != 1:
@@ -204,6 +208,10 @@ class BpmnJsonGenerator:
 
             elif last_element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
                 join_id = self._find_common_branch_endpoint(last_element["id"])
+
+                if join_id is None:
+                    raise ValueError("Parallel gateway should have a corresponding join gateway")
+
                 join_outgoing_flows = self._get_outgoing_flows(join_id)
 
                 if len(join_outgoing_flows) != 1:

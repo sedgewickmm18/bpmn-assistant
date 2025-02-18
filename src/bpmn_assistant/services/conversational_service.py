@@ -1,4 +1,4 @@
-from typing import Generator, Optional
+from typing import Any, Generator, Optional
 
 from bpmn_assistant.core import MessageItem
 from bpmn_assistant.core.enums import OutputMode
@@ -13,7 +13,7 @@ class ConversationalService:
         self.prompt_processor = PromptTemplateProcessor()
 
     def respond_to_query(
-        self, message_history: list[MessageItem], process: Optional[list]
+        self, message_history: list[MessageItem], process: Optional[list[dict[str, Any]]]
     ) -> Generator:
         """
         Respond to the user query based on the message history and BPMN process.
@@ -36,7 +36,7 @@ class ConversationalService:
         yield from self.llm_facade.stream(prompt, max_tokens=500, temperature=0.5)
 
     def make_final_comment(
-        self, message_history: list[MessageItem], process: list
+        self, message_history: list[MessageItem], process: Optional[list[dict[str, Any]]]
     ) -> Generator:
         """
         Make a final comment after the process is created/edited.

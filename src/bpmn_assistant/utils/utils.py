@@ -21,6 +21,8 @@ def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON) -> LLM
         output_mode: The output mode for the LLM response (JSON or text)
     Returns:
         LLMFacade: The LLM facade
+    Raises:
+        Exception: If the model is invalid or if the required API key is not set
     """
     load_dotenv(override=True)
 
@@ -38,6 +40,9 @@ def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON) -> LLM
         provider = Provider.FIREWORKS_AI
     else:
         raise Exception("Invalid model")
+
+    if not api_key:
+        raise Exception(f"API key not found for provider {provider}")
 
     return LLMFacade(
         provider,

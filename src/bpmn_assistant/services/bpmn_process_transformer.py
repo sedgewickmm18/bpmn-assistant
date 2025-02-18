@@ -35,8 +35,8 @@ class BpmnProcessTransformer:
             }
         """
 
-        elements = []
-        flows = []
+        elements: list[dict] = []
+        flows: list[dict] = []
 
         def add_flow(source_ref, target_ref, flow_id=None, condition=None):
             """

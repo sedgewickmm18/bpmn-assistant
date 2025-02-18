@@ -35,13 +35,13 @@ class BpmnXmlGenerator:
         root.set("id", "definitions_1")
 
         # Create the process element
-        process = ET.SubElement(root, "process")
-        process.set("id", "Process_1")
-        process.set("isExecutable", "false")
+        process_element = ET.SubElement(root, "process")
+        process_element.set("id", "Process_1")
+        process_element.set("isExecutable", "false")
 
         # Add elements
         for element in transformed_process["elements"]:
-            elem = ET.SubElement(process, element["type"])
+            elem = ET.SubElement(process_element, element["type"])
             elem.set("id", element["id"])
 
             # Add label if it exists
@@ -56,7 +56,7 @@ class BpmnXmlGenerator:
 
         # Add flows
         for flow in transformed_process["flows"]:
-            seq_flow = ET.SubElement(process, "sequenceFlow")
+            seq_flow = ET.SubElement(process_element, "sequenceFlow")
             seq_flow.set("id", flow["id"])
             seq_flow.set("sourceRef", flow["sourceRef"])
             seq_flow.set("targetRef", flow["targetRef"])
