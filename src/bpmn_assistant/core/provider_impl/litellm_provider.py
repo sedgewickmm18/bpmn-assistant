@@ -31,7 +31,7 @@ class LiteLLMProvider(LLMProvider):
     ) -> str | dict[str, Any]:
         messages.append({"role": "user", "content": prompt})
 
-        params = {
+        params: dict[str, Any] = {
             "model": model,
             "messages": messages,
         }
