@@ -4,26 +4,16 @@ from typing import Generator, Any
 from anthropic import Anthropic
 from anthropic.types import TextBlock
 from pydantic import BaseModel
-import csv
-import os
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core.enums import AnthropicModels, OutputMode, MessageRole
 from bpmn_assistant.core.llm_provider import LLMProvider
-from .token_usage_tracker import TokenUsageTracker
 
 
 class AnthropicProvider(LLMProvider):
     def __init__(self, api_key: str, output_mode: OutputMode = OutputMode.JSON):
         self.output_mode = output_mode
-        self.token_tracker = TokenUsageTracker()
         self.client = Anthropic(api_key=api_key)
-
-    def start_operation(self, operation_name: str):
-        self.token_tracker.start_operation(operation_name)
-
-    def end_operation(self):
-        self.token_tracker.end_operation()
 
     def call(
         self,
@@ -51,20 +41,6 @@ class AnthropicProvider(LLMProvider):
                 messages=messages,  # type: ignore[arg-type]
             )
 
-            input_tokens = response.usage.input_tokens
-            output_tokens = response.usage.output_tokens
-
-            self.token_tracker.add_usage(input_tokens, output_tokens, model)
-
-            # file_exists = os.path.isfile("usage.csv")
-            # with open("usage.csv", mode="a", newline="") as file:
-            #     writer = csv.writer(file)
-            #     if not file_exists:
-            #         writer.writerow(
-            #             ["model", "input_tokens", "output_tokens"]
-            #         )
-            #     writer.writerow([model, input_tokens, output_tokens])
-
             content = response.content[0]
 
             if not isinstance(content, TextBlock):
@@ -88,11 +64,6 @@ class AnthropicProvider(LLMProvider):
             )
 
             content = response.content[0]
-
-            input_tokens = response.usage.input_tokens
-            output_tokens = response.usage.output_tokens
-
-            self.token_tracker.add_usage(input_tokens, output_tokens, model)
 
             if not isinstance(content, TextBlock):
                 raise ValueError(f"Invalid response from Anthropic: {content}")

@@ -25,13 +25,10 @@ class BpmnEditingService:
         Returns:
             The updated BPMN process
         """
-        self.llm_facade.provider.start_operation("edit_bpmn")
-        try:
-            updated_process = self._apply_initial_edit()
-            updated_process = self._apply_intermediate_edits(updated_process)
-            return updated_process
-        finally:
-            self.llm_facade.provider.end_operation()
+        updated_process = self._apply_initial_edit()
+        updated_process = self._apply_intermediate_edits(updated_process)
+
+        return updated_process
 
     def _apply_initial_edit(self, max_retries: int = 4) -> list:
         """

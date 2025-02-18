@@ -5,29 +5,20 @@ from typing import Any, Generator
 
 from litellm import completion
 from pydantic import BaseModel
-import csv
 
 from bpmn_assistant.config import logger
 from bpmn_assistant.core.enums.message_roles import MessageRole
 from bpmn_assistant.core.enums.models import FireworksAIModels, GoogleModels, OpenAIModels
 from bpmn_assistant.core.enums.output_modes import OutputMode
 from bpmn_assistant.core.llm_provider import LLMProvider
-from .token_usage_tracker import TokenUsageTracker
 
 
 class LiteLLMProvider(LLMProvider):
     def __init__(self, api_key: str, output_mode: OutputMode = OutputMode.JSON):
         self.output_mode = output_mode
-        self.token_tracker = TokenUsageTracker()
         os.environ["FIREWORKS_AI_API_KEY"] = api_key
         os.environ["OPENAI_API_KEY"] = api_key
         os.environ["GEMINI_API_KEY"] = api_key
-
-    def start_operation(self, operation_name: str):
-        self.token_tracker.start_operation(operation_name)
-
-    def end_operation(self):
-        self.token_tracker.end_operation()
 
     def call(
         self,
@@ -40,12 +31,13 @@ class LiteLLMProvider(LLMProvider):
     ) -> str | dict[str, Any]:
         messages.append({"role": "user", "content": prompt})
 
-        # Only use response_format for Fireworks AI models when structured output is needed
-        response_format = None
-        if structured_output is not None and any(model == m.value for m in FireworksAIModels):
-            response_format = structured_output
-        elif self.output_mode == OutputMode.JSON:
-            response_format = {"type": "json_object"}
+        response_format = (
+            structured_output
+            if structured_output is not None
+            else (
+                {"type": "json_object"} if self.output_mode == OutputMode.JSON else None
+            )
+        )
 
         params = {
             "model": model,
@@ -58,18 +50,6 @@ class LiteLLMProvider(LLMProvider):
             params["temperature"] = temperature
 
         response = completion(**params)
-
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
-
-        self.token_tracker.add_usage(input_tokens, output_tokens, model)
-
-        # file_exists = os.path.isfile("usage.csv")
-        # with open("usage.csv", mode="a", newline="") as file:
-        #     writer = csv.writer(file)
-        #     if not file_exists:
-        #         writer.writerow(["model", "input_tokens", "output_tokens"])
-        #     writer.writerow([model, input_tokens, output_tokens])
 
         raw_output = response.choices[0].message.content
 
