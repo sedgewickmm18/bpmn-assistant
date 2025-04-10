@@ -22,8 +22,8 @@ const Models = Object.freeze({
   SONNET_3_7: 'claude-3-7-sonnet-20250219',
   GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro-preview-03-25',
   GEMINI_2_FLASH: 'gemini/gemini-2.0-flash-001',
-  LLAMA_3_3_70B:
-    'fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct',
+  LLAMA_4_MAVERICK:
+    'fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic',
   QWEN_2_5_72B: 'fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct',
   DEEPSEEK_V3: 'fireworks_ai/accounts/fireworks/models/deepseek-v3',
   DEEPSEEK_R1: 'fireworks_ai/accounts/fireworks/models/deepseek-r1',
@@ -74,8 +74,8 @@ export default {
           provider: Providers.GOOGLE,
         },
         {
-          value: Models.LLAMA_3_3_70B,
-          title: 'Llama 3.3 70B',
+          value: Models.LLAMA_4_MAVERICK,
+          title: 'Llama 4 Maverick',
           provider: Providers.FIREWORKS_AI,
         },
         {
@@ -134,9 +134,9 @@ export default {
         } else if (this.availableProviders.includes(Providers.ANTHROPIC)) {
           this.onModelChange(Models.SONNET_3_7);
         } else if (this.availableProviders.includes(Providers.GOOGLE)) {
-          this.onModelChange(Models.GEMINI_2_PRO);
+          this.onModelChange(Models.GEMINI_2_5_PRO);
         } else if (this.availableProviders.includes(Providers.FIREWORKS_AI)) {
-          this.onModelChange(Models.LLAMA_3_3_70B);
+          this.onModelChange(Models.LLAMA_4_MAVERICK);
         }
       } catch (error) {
         console.error('Error fetching available providers', error);

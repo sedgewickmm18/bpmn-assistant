@@ -86,8 +86,8 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 ### Fireworks AI
 
-* Llama 3.3 70B Instruct
-* Qwen 2.5 72B Instruct
+* Llama 4 Maverick
+* Qwen 2.5 72B
 * Deepseek V3
 * Deepseek R1
 
