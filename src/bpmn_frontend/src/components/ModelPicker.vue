@@ -20,7 +20,7 @@ const Models = Object.freeze({
   O3_MINI: 'o3-mini',
   HAIKU_3_5: 'claude-3-5-haiku-20241022',
   SONNET_3_7: 'claude-3-7-sonnet-20250219',
-  GEMINI_2_PRO: 'gemini/gemini-2.0-pro-exp-02-05',
+  GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro-preview-03-25',
   GEMINI_2_FLASH: 'gemini/gemini-2.0-flash-001',
   LLAMA_3_3_70B:
     'fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct',
@@ -69,8 +69,8 @@ export default {
           provider: Providers.GOOGLE,
         },
         {
-          value: Models.GEMINI_2_PRO,
-          title: 'Gemini 2.0 Pro',
+          value: Models.GEMINI_2_5_PRO,
+          title: 'Gemini 2.5 Pro',
           provider: Providers.GOOGLE,
         },
         {

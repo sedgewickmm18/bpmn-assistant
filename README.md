@@ -82,7 +82,7 @@ Note: You can use any combination of the API keys above, but at least one is req
 ### Google
 
 * Gemini 2.0 Flash
-* Gemini 2.0 Pro
+* Gemini 2.5 Pro
 
 ### Fireworks AI
 
