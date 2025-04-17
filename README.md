@@ -69,10 +69,9 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 ### OpenAI
 
-* GPT-4o mini
-* GPT-4o
+* GPT-4.1
+* GPT-4.1 mini
 * o3-mini
-
 
 ### Anthropic
 

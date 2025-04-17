@@ -15,8 +15,8 @@
 
 <script>
 const Models = Object.freeze({
-  GPT_4O_MINI: 'gpt-4o-mini',
-  GPT_4O: 'gpt-4o',
+  GPT_4_1_MINI: 'gpt-4.1-mini',
+  GPT_4_1: 'gpt-4.1',
   O3_MINI: 'o3-mini',
   HAIKU_3_5: 'claude-3-5-haiku-20241022',
   SONNET_3_7: 'claude-3-7-sonnet-20250219',
@@ -42,12 +42,12 @@ export default {
     return {
       selectedModel: '',
       models: [
+        { value: Models.GPT_4_1, title: 'GPT-4.1', provider: Providers.OPENAI },
         {
-          value: Models.GPT_4O_MINI,
-          title: 'GPT-4o mini',
+          value: Models.GPT_4_1_MINI,
+          title: 'GPT-4.1 mini',
           provider: Providers.OPENAI,
         },
-        { value: Models.GPT_4O, title: 'GPT-4o', provider: Providers.OPENAI },
         {
           value: Models.O3_MINI,
           title: 'o3-mini',
@@ -130,7 +130,7 @@ export default {
         );
 
         if (this.availableProviders.includes(Providers.OPENAI)) {
-          this.onModelChange(Models.GPT_4O);
+          this.onModelChange(Models.GPT_4_1);
         } else if (this.availableProviders.includes(Providers.ANTHROPIC)) {
           this.onModelChange(Models.SONNET_3_7);
         } else if (this.availableProviders.includes(Providers.GOOGLE)) {

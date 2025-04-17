@@ -40,13 +40,16 @@ class LiteLLMProvider(LLMProvider):
             "messages": messages,
         }
 
-        # Google's structured output does not support type unions
-        if structured_output is not None and model not in [
-            m.value for m in GoogleModels
-        ]:
-            params["response_format"] = structured_output
-        elif self.output_mode == OutputMode.JSON:
+        # LiteLLM sucks
+        if structured_output is not None or self.output_mode == OutputMode.JSON:
             params["response_format"] = {"type": "json_object"}
+
+        # if structured_output is not None and model not in [
+        #     m.value for m in GoogleModels
+        # ]:
+        #     params["response_format"] = structured_output
+        # elif self.output_mode == OutputMode.JSON:
+        #     params["response_format"] = {"type": "json_object"}
 
         if model != OpenAIModels.O3_MINI.value:
             params["max_tokens"] = max_tokens
