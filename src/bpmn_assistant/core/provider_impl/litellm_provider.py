@@ -51,7 +51,7 @@ class LiteLLMProvider(LLMProvider):
         # elif self.output_mode == OutputMode.JSON:
         #     params["response_format"] = {"type": "json_object"}
 
-        if model != OpenAIModels.O3_MINI.value:
+        if model != OpenAIModels.O4_MINI.value:
             params["max_tokens"] = max_tokens
             params["temperature"] = temperature
 

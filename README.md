@@ -71,7 +71,7 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 * GPT-4.1
 * GPT-4.1 mini
-* o3-mini
+* o4-mini
 
 ### Anthropic
 
