@@ -21,7 +21,7 @@ const Models = Object.freeze({
   HAIKU_3_5: 'claude-3-5-haiku-20241022',
   SONNET_3_7: 'claude-3-7-sonnet-20250219',
   GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro-preview-03-25',
-  GEMINI_2_FLASH: 'gemini/gemini-2.0-flash-001',
+  GEMINI_2_5_FLASH: 'gemini/gemini-2.5-flash-preview-04-17',
   LLAMA_4_MAVERICK:
     'fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic',
   QWEN_2_5_72B: 'fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct',
@@ -64,8 +64,8 @@ export default {
           provider: Providers.ANTHROPIC,
         },
         {
-          value: Models.GEMINI_2_FLASH,
-          title: 'Gemini 2.0 Flash',
+          value: Models.GEMINI_2_5_FLASH,
+          title: 'Gemini 2.5 Flash',
           provider: Providers.GOOGLE,
         },
         {
