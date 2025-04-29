@@ -61,12 +61,7 @@
           :content="message.content"
         />
 
-        <v-alert
-          v-if="isLoading"
-          type="info"
-          text="Generating BPMN..."
-          class="mb-5"
-        />
+        <LoadingIndicator v-if="isLoading" />
       </div>
 
       <div v-if="messages.length === 0">
@@ -131,6 +126,7 @@
 <script>
 import ModelPicker from './ModelPicker.vue';
 import MessageCard from './MessageCard.vue';
+import LoadingIndicator from './LoadingIndicator.vue';
 import { toRaw } from 'vue';
 import Intent from '../enums/Intent';
 
@@ -139,6 +135,7 @@ export default {
   components: {
     ModelPicker,
     MessageCard,
+    LoadingIndicator,
   },
   props: {
     onBpmnXmlReceived: Function,

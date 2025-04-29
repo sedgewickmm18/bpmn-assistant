@@ -40,16 +40,8 @@ class LiteLLMProvider(LLMProvider):
             "messages": messages,
         }
 
-        # LiteLLM sucks
         if structured_output is not None or self.output_mode == OutputMode.JSON:
             params["response_format"] = {"type": "json_object"}
-
-        # if structured_output is not None and model not in [
-        #     m.value for m in GoogleModels
-        # ]:
-        #     params["response_format"] = structured_output
-        # elif self.output_mode == OutputMode.JSON:
-        #     params["response_format"] = {"type": "json_object"}
 
         if model != OpenAIModels.O4_MINI.value:
             params["max_tokens"] = max_tokens
@@ -63,7 +55,10 @@ class LiteLLMProvider(LLMProvider):
 
         raw_output = response.choices[0].message.content
 
-        if model == FireworksAIModels.DEEPSEEK_R1.value:
+        if model in [
+            FireworksAIModels.DEEPSEEK_R1.value,
+            FireworksAIModels.QWEN_3_235B.value,
+        ]:
             # Extract thinking phase and clean output
             think_pattern = r"<think>(.*?)</think>"
             think_match = re.search(think_pattern, raw_output, re.DOTALL)
@@ -95,8 +90,50 @@ class LiteLLMProvider(LLMProvider):
             stream=True,
         )
 
-        for chunk in response:
-            yield chunk.choices[0].delta.content or ""
+        open_tag, close_tag = "<think>", "</think>"
+        inside_think = False
+        thought_parts: list[str] = []
+        buffer = ""
+        first_payload_sent = False
+
+        try:
+            for chunk in response:
+                fragment = chunk.choices[0].delta.content or ""
+                if not fragment:
+                    continue
+
+                buffer += fragment
+                while buffer:
+                    if inside_think:
+                        end_idx = buffer.find(close_tag)
+                        if end_idx == -1:
+                            thought_parts.append(buffer)
+                            buffer = ""
+                        else:
+                            thought_parts.append(buffer[:end_idx])
+                            buffer = buffer[end_idx + len(close_tag) :]
+                            inside_think = False
+                    else:
+                        start_idx = buffer.find(open_tag)
+                        if start_idx == -1:
+                            payload = buffer
+                            buffer = ""
+                        else:
+                            payload = buffer[:start_idx]
+                            buffer = buffer[start_idx + len(open_tag) :]
+                            inside_think = True
+
+                        if payload:
+                            if not first_payload_sent:
+                                payload = payload.lstrip("\n")
+                                if not payload:
+                                    continue
+                                first_payload_sent = True
+                            yield payload
+        finally:
+            thought = "".join(thought_parts).strip()
+            if thought:
+                logger.info(f"Model thinking phase: {thought}")
 
     def get_initial_messages(self) -> list[dict[str, str]]:
         return (

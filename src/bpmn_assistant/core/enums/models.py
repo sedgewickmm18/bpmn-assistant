@@ -19,6 +19,6 @@ class GoogleModels(Enum):
 
 class FireworksAIModels(Enum):
     LLAMA_4_MAVERICK = "fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic"
-    QWEN_2_5_72B = "fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct"
+    QWEN_3_235B = "fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b"
     DEEPSEEK_V3 = "fireworks_ai/accounts/fireworks/models/deepseek-v3"
     DEEPSEEK_R1 = "fireworks_ai/accounts/fireworks/models/deepseek-r1"

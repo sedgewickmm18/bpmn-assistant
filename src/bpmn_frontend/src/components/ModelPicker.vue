@@ -24,7 +24,7 @@ const Models = Object.freeze({
   GEMINI_2_5_FLASH: 'gemini/gemini-2.5-flash-preview-04-17',
   LLAMA_4_MAVERICK:
     'fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic',
-  QWEN_2_5_72B: 'fireworks_ai/accounts/fireworks/models/qwen2p5-72b-instruct',
+  QWEN_3_235B: 'fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b',
   DEEPSEEK_V3: 'fireworks_ai/accounts/fireworks/models/deepseek-v3',
   DEEPSEEK_R1: 'fireworks_ai/accounts/fireworks/models/deepseek-r1',
 });
@@ -79,8 +79,8 @@ export default {
           provider: Providers.FIREWORKS_AI,
         },
         {
-          value: Models.QWEN_2_5_72B,
-          title: 'Qwen 2.5 72B',
+          value: Models.QWEN_3_235B,
+          title: 'Qwen 3',
           provider: Providers.FIREWORKS_AI,
         },
         {
