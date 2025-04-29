@@ -66,15 +66,14 @@
 
       <div v-if="messages.length === 0">
         <v-alert
-          type="warning"
           text="Supported elements: start and end events, tasks (user, service), gateways (exclusive, parallel), sequence flows"
           class="mb-3"
+          type="info"
         />
 
-        <v-alert
-          type="info"
-          text="Welcome to BPMN Assistant! I can help you understand and create BPMN processes. Let's start by discussing your BPMN needs or creating a new process from scratch. How would you like to begin?"
-          class="mb-3"
+        <MessageCard
+          role="assistant"
+          content="Welcome to BPMN Assistant! I can help you understand and create BPMN processes. Let's start by discussing your BPMN needs or creating a new process from scratch. How would you like to begin?"
         />
       </div>
 
@@ -221,6 +220,9 @@ export default {
           break;
         case Intent.MODIFY:
           this.isLoading = true;
+          this.$nextTick(() => {
+            this.scrollToBottom();
+          });
           const { bpmnXml, bpmnJson } = await this.modify(
             this.process,
             this.selectedModel

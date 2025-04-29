@@ -53,6 +53,8 @@ docker-compose up --build
 
 5. Open your browser and go to `http://localhost:8080`
 
+![Screenshot](images/screenshot_1.png)
+
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
@@ -89,12 +91,6 @@ Note: You can use any combination of the API keys above, but at least one is req
 * Qwen 3 235B
 * Deepseek V3
 * Deepseek R1
-
-## Screenshots
-
-![Screenshot](images/screenshot_1.png)
-
-![Screenshot](images/screenshot_2.png)
 
 ## Core features
 
