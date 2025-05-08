@@ -58,8 +58,6 @@ class LLMFacade:
             structured_output,
         )
 
-        # Append the response to the message history in case the JSON is invalid and
-        # we need to re-run the call
         if self.output_mode == OutputMode.JSON:
             if not isinstance(response, dict):
                 raise ValueError(f"Provider returned non-dict in JSON mode: {response}")
