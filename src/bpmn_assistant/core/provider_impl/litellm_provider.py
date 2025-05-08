@@ -27,14 +27,11 @@ class LiteLLMProvider(LLMProvider):
     def call(
         self,
         model: str,
-        prompt: str,
         messages: list[dict[str, str]],
         max_tokens: int,
         temperature: float,
         structured_output: BaseModel | None = None,
     ) -> str | dict[str, Any]:
-        messages.append({"role": "user", "content": prompt})
-
         params: dict[str, Any] = {
             "model": model,
             "messages": messages,
@@ -75,13 +72,10 @@ class LiteLLMProvider(LLMProvider):
     def stream(
         self,
         model: str,
-        prompt: str,
         messages: list[dict[str, str]],
         max_tokens: int,
         temperature: float,
     ) -> Generator[str, None, None]:
-        messages.append({"role": "user", "content": prompt})
-
         response = completion(
             model=model,
             messages=messages,
@@ -146,12 +140,6 @@ class LiteLLMProvider(LLMProvider):
             if self.output_mode == OutputMode.JSON
             else []
         )
-
-    def add_message(
-        self, messages: list[dict[str, str]], role: MessageRole, content: str
-    ) -> None:
-        message_role = "assistant" if role == MessageRole.ASSISTANT else "user"
-        messages.append({"role": message_role, "content": content})
 
     def check_model_compatibility(self, model: str) -> bool:
         return (
