@@ -116,7 +116,7 @@ The application currently supports a subset of BPMN elements:
 
 * The AI assistant does not "see" manual edits made to the diagram. It always responds based on its last generated
   version. Keep this in mind when interacting with the assistant after making manual changes.
-* Pools and lanes are not and will not be supported.
+* Pools and lanes are not supported due to limitations in the [BPMN Auto Layout](https://github.com/bpmn-io/bpmn-auto-layout) library.
 
 ## Contact
 
