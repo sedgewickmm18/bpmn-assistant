@@ -77,8 +77,8 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 ### Anthropic
 
-* Claude 3.5 Haiku
-* Claude 3.7 Sonnet
+* Claude Sonnet 4
+* Claude Opus 4
 
 ### Google
 

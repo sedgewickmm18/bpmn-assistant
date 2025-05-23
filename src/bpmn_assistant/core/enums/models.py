@@ -8,8 +8,8 @@ class OpenAIModels(Enum):
 
 
 class AnthropicModels(Enum):
-    HAIKU_3_5 = "claude-3-5-haiku-20241022"
-    SONNET_3_7 = "claude-3-7-sonnet-20250219"
+    SONNET_4 = "claude-sonnet-4-20250514"
+    OPUS_4 = "claude-opus-4-20250514"
 
 
 class GoogleModels(Enum):
@@ -18,7 +18,9 @@ class GoogleModels(Enum):
 
 
 class FireworksAIModels(Enum):
-    LLAMA_4_MAVERICK = "fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic"
+    LLAMA_4_MAVERICK = (
+        "fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic"
+    )
     QWEN_3_235B = "fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b"
     DEEPSEEK_V3 = "fireworks_ai/accounts/fireworks/models/deepseek-v3"
     DEEPSEEK_R1 = "fireworks_ai/accounts/fireworks/models/deepseek-r1"

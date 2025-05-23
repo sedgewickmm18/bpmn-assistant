@@ -12,7 +12,7 @@ from tests.fixtures.bpmn_loader import load_bpmn
 def anthropic_facade():
     load_dotenv(override=True)
     api_key = os.getenv("ANTHROPIC_API_KEY")
-    return LLMFacade(Provider.ANTHROPIC, api_key, AnthropicModels.HAIKU_3_5.value)
+    return LLMFacade(Provider.ANTHROPIC, api_key, AnthropicModels.SONNET_4.value)
 
 
 @pytest.fixture
@@ -580,21 +580,9 @@ def labeled_events_process():
     Description: A process that contains events with labels.
     """
     return [
-        {
-            "type": "startEvent",
-            "id": "start1",
-            "label": "Order received"
-        },
-        {
-            "type": "task",
-            "id": "task1",
-            "label": "Process order"
-        },
-        {
-            "type": "endEvent",
-            "id": "end1",
-            "label": "Order completed"
-        }
+        {"type": "startEvent", "id": "start1", "label": "Order received"},
+        {"type": "task", "id": "task1", "label": "Process order"},
+        {"type": "endEvent", "id": "end1", "label": "Order completed"},
     ]
 
 

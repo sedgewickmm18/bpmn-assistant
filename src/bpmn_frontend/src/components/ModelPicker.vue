@@ -18,8 +18,8 @@ const Models = Object.freeze({
   GPT_4_1_MINI: 'gpt-4.1-mini',
   GPT_4_1: 'gpt-4.1',
   O4_MINI: 'o4-mini',
-  HAIKU_3_5: 'claude-3-5-haiku-20241022',
-  SONNET_3_7: 'claude-3-7-sonnet-20250219',
+  SONNET_4: 'claude-sonnet-4-20250514',
+  OPUS_4: 'claude-opus-4-20250514',
   GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro-preview-03-25',
   GEMINI_2_5_FLASH: 'gemini/gemini-2.5-flash-preview-04-17',
   LLAMA_4_MAVERICK:
@@ -54,13 +54,13 @@ export default {
           provider: Providers.OPENAI,
         },
         {
-          value: Models.HAIKU_3_5,
-          title: 'Claude 3.5 Haiku',
+          value: Models.SONNET_4,
+          title: 'Claude Sonnet 4',
           provider: Providers.ANTHROPIC,
         },
         {
-          value: Models.SONNET_3_7,
-          title: 'Claude 3.7 Sonnet',
+          value: Models.OPUS_4,
+          title: 'Claude Opus 4',
           provider: Providers.ANTHROPIC,
         },
         {
@@ -132,7 +132,7 @@ export default {
         if (this.availableProviders.includes(Providers.OPENAI)) {
           this.onModelChange(Models.GPT_4_1);
         } else if (this.availableProviders.includes(Providers.ANTHROPIC)) {
-          this.onModelChange(Models.SONNET_3_7);
+          this.onModelChange(Models.SONNET_4);
         } else if (this.availableProviders.includes(Providers.GOOGLE)) {
           this.onModelChange(Models.GEMINI_2_5_PRO);
         } else if (this.availableProviders.includes(Providers.FIREWORKS_AI)) {
