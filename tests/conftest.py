@@ -590,3 +590,9 @@ def labeled_events_process():
 def bpmn_xml_labeled_events():
     """Description: BPMN XML with labeled start and end events."""
     return load_bpmn("labeled_events.bpmn")
+
+@pytest.fixture
+def bpmn_xml_two_start_events():
+    """BPMN XML with two start events."""
+    return load_bpmn("two_start_events.bpmn")
+
