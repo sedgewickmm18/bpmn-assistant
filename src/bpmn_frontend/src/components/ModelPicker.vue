@@ -15,9 +15,7 @@
 
 <script>
 const Models = Object.freeze({
-  GPT_4_1_MINI: 'gpt-4.1-mini',
   GPT_4_1: 'gpt-4.1',
-  O4_MINI: 'o4-mini',
   SONNET_4: 'claude-sonnet-4-20250514',
   OPUS_4: 'claude-opus-4-20250514',
   GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro-preview-03-25',
@@ -43,16 +41,6 @@ export default {
       selectedModel: '',
       models: [
         { value: Models.GPT_4_1, title: 'GPT-4.1', provider: Providers.OPENAI },
-        {
-          value: Models.GPT_4_1_MINI,
-          title: 'GPT-4.1 mini',
-          provider: Providers.OPENAI,
-        },
-        {
-          value: Models.O4_MINI,
-          title: 'o4-mini',
-          provider: Providers.OPENAI,
-        },
         {
           value: Models.SONNET_4,
           title: 'Claude Sonnet 4',

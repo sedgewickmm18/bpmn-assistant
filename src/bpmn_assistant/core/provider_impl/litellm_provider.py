@@ -40,9 +40,8 @@ class LiteLLMProvider(LLMProvider):
         if structured_output is not None or self.output_mode == OutputMode.JSON:
             params["response_format"] = {"type": "json_object"}
 
-        if model != OpenAIModels.O4_MINI.value:
-            params["max_tokens"] = max_tokens
-            params["temperature"] = temperature
+        params["max_tokens"] = max_tokens
+        params["temperature"] = temperature
 
         response = completion(**params)
 

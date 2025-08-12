@@ -2,10 +2,7 @@ from enum import Enum
 
 
 class OpenAIModels(Enum):
-    GPT_4_1_MINI = "gpt-4.1-mini"
     GPT_4_1 = "gpt-4.1"
-    O4_MINI = "o4-mini"
-
 
 class AnthropicModels(Enum):
     SONNET_4 = "claude-sonnet-4-20250514"
