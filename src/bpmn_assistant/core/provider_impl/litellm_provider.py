@@ -7,7 +7,6 @@ from litellm import completion
 from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
-from bpmn_assistant.core.enums.message_roles import MessageRole
 from bpmn_assistant.core.enums.models import (
     FireworksAIModels,
     GoogleModels,
@@ -41,7 +40,12 @@ class LiteLLMProvider(LLMProvider):
             params["response_format"] = {"type": "json_object"}
 
         params["max_tokens"] = max_tokens
-        params["temperature"] = temperature
+
+        # GPT-5 models only support temperature=1
+        if model in [OpenAIModels.GPT_5.value, OpenAIModels.GPT_5_MINI.value]:
+            params["temperature"] = 1
+        else:
+            params["temperature"] = temperature
 
         response = completion(**params)
 
@@ -75,6 +79,10 @@ class LiteLLMProvider(LLMProvider):
         max_tokens: int,
         temperature: float,
     ) -> Generator[str, None, None]:
+        # GPT-5 models only support temperature=1
+        if model in [OpenAIModels.GPT_5.value, OpenAIModels.GPT_5_MINI.value]:
+            temperature = 1
+
         response = completion(
             model=model,
             messages=messages,

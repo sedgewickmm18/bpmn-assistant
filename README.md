@@ -71,6 +71,8 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 ### OpenAI
 
+* GPT-5
+* GPT-5 mini
 * GPT-4.1
 
 ### Anthropic

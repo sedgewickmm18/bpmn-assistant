@@ -27,7 +27,7 @@ export default {
   mounted() {
     this.timeoutTimer = setTimeout(() => {
       this.showTimeout = true;
-    }, 15000);
+    }, 20000);
   },
   beforeDestroy() {
     if (this.timeoutTimer) {

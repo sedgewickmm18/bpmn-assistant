@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class OpenAIModels(Enum):
+    GPT_5 = "gpt-5"
+    GPT_5_MINI = "gpt-5-mini"
     GPT_4_1 = "gpt-4.1"
 
 class AnthropicModels(Enum):
