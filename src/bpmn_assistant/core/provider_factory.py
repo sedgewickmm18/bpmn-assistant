@@ -13,7 +13,7 @@ class ProviderFactory:
         provider: Provider, api_key: str, output_mode: OutputMode = OutputMode.JSON
     ) -> LLMProvider:
 
-        if provider in [Provider.OPENAI, Provider.FIREWORKS_AI, Provider.GOOGLE]:
+        if provider in [Provider.OPENAI, Provider.FIREWORKS_AI, Provider.GOOGLE, Provider.OLLAMA]:
             return LiteLLMProvider(api_key, output_mode)
         elif provider == Provider.ANTHROPIC:
             return AnthropicProvider(api_key, output_mode)

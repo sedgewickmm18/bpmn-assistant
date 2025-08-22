@@ -18,6 +18,9 @@ const Models = Object.freeze({
   GPT_5: 'gpt-5',
   GPT_5_MINI: 'gpt-5-mini',
   GPT_4_1: 'gpt-4.1',
+  OLLAMA_QWEN3_06: 'ollama_chat/qwen3-0.6',
+  OLLAMA_QWEN3_8: 'ollama_chat/qwen3-8',
+  OLLAMA_GRANITE4: 'ollama_chat/granite4',
   SONNET_4: 'claude-sonnet-4-20250514',
   OPUS_4: 'claude-opus-4-20250514',
   GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro-preview-03-25',
@@ -34,6 +37,7 @@ const Providers = Object.freeze({
   ANTHROPIC: 'anthropic',
   GOOGLE: 'google',
   FIREWORKS_AI: 'fireworks_ai',
+  OLLAMA: 'ollama'
 });
 
 export default {
@@ -49,6 +53,21 @@ export default {
           provider: Providers.OPENAI,
         },
         { value: Models.GPT_4_1, title: 'GPT-4.1', provider: Providers.OPENAI },
+        {
+          value: Models.OLLAMA_QWEN3_06,
+          title: 'ollama_chat/qwen3-0.6',
+          provider: Providers.OLLAMA
+        },
+        {
+          value: Models.OLLAMA_QWEN3_8,
+          title: 'ollama_chat/qwen3-8',
+          provider: Providers.OLLAMA
+        },
+        {
+          value: Models.OLLAMA_GRANITE4,
+          title: 'ollama_chat/granite4',
+          provider: Providers.OLLAMA
+        },
         {
           value: Models.SONNET_4,
           title: 'Claude Sonnet 4',
@@ -133,6 +152,8 @@ export default {
           this.onModelChange(Models.GEMINI_2_5_PRO);
         } else if (this.availableProviders.includes(Providers.FIREWORKS_AI)) {
           this.onModelChange(Models.LLAMA_4_MAVERICK);
+        } else if (this.availableProviders.includes(Providers.OLLAMA)) {
+          this.onModelChange(Models.OLLAMA_GRANITE4);
         }
       } catch (error) {
         console.error('Error fetching available providers', error);

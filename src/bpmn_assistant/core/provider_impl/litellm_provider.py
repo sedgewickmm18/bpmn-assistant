@@ -1,12 +1,18 @@
-import json
+
+# fix slightly incorrect json documents from LLMs
+#  https://github.com/mangiucugna/json_repair
+import json_repair as json
+
 import os
 import re
 from typing import Any, Generator
 
+import litellm
 from litellm import completion
 from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
+from bpmn_assistant.core.enums.message_roles import MessageRole
 from bpmn_assistant.core.enums.models import (
     FireworksAIModels,
     GoogleModels,
@@ -14,6 +20,14 @@ from bpmn_assistant.core.enums.models import (
 )
 from bpmn_assistant.core.enums.output_modes import OutputMode
 from bpmn_assistant.core.llm_provider import LLMProvider
+
+# make sure we select the right provider in litellm_core_utils/get_llm_provider_logic.py
+#  add granite4 to list of known models supported by ollama
+litellm.ollama_models.append('granite4')
+litellm.model_list.append('ollama')
+litellm.model_list_set = set(litellm.model_list)
+#print('OLLAMA MODELS', litellm.ollama_models)
+
 
 
 class LiteLLMProvider(LLMProvider):
@@ -36,6 +50,13 @@ class LiteLLMProvider(LLMProvider):
             "messages": messages,
         }
 
+        #print('RESPONSE PARMS PRE', model)
+
+        if model.startswith('ollama'):
+            params['api_base'] = 'http://0.0.0.0:11434'
+            params['model'] = model
+            params['api_key'] = 'sk-1234'
+
         if structured_output is not None or self.output_mode == OutputMode.JSON:
             params["response_format"] = {"type": "json_object"}
 
@@ -47,6 +68,7 @@ class LiteLLMProvider(LLMProvider):
         else:
             params["temperature"] = temperature
 
+        #print('RESPONSE PARMS', params)
         response = completion(**params)
 
         if not response.choices:
@@ -54,7 +76,9 @@ class LiteLLMProvider(LLMProvider):
             raise Exception("Empty response from model")
 
         raw_output = response.choices[0].message.content
+        #print('RETURNED', raw_output)
 
+        # TODO: make sure to strip think patterns for qwen3 and deepseek models run locally
         if model in [
             FireworksAIModels.DEEPSEEK_R1.value,
             FireworksAIModels.QWEN_3_235B.value,
@@ -70,6 +94,11 @@ class LiteLLMProvider(LLMProvider):
                     think_pattern, "", raw_output, flags=re.DOTALL
                 ).strip()
 
+        # for granite4 and qwen3 settle for the last json in raw output
+        if model.startswith('ollama'):
+            raw_output = raw_output[raw_output.rfind('```json\n') + 8:raw_output.rfind('```\n')]
+            #print('RETURNED after stripping', raw_output)
+
         return self._process_response(raw_output)
 
     def stream(
@@ -83,13 +112,21 @@ class LiteLLMProvider(LLMProvider):
         if model in [OpenAIModels.GPT_5.value, OpenAIModels.GPT_5_MINI.value]:
             temperature = 1
 
-        response = completion(
-            model=model,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            stream=True,
-        )
+        params: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stream": True
+        }
+
+        #print('STREAM', model)
+        if model.startswith('ollama'):
+            params['api_base'] = 'http://0.0.0.0:11434'
+            params['model'] = model
+            params['api_key'] = 'sk-1234'
+
+        response = completion(**params)
 
         open_tag, close_tag = "<think>", "</think>"
         inside_think = False
@@ -103,6 +140,7 @@ class LiteLLMProvider(LLMProvider):
                 if not fragment:
                     continue
 
+                #print('RETURNED STREAM FRAGMENT', fragment)
                 buffer += fragment
                 while buffer:
                     if inside_think:
@@ -130,6 +168,7 @@ class LiteLLMProvider(LLMProvider):
                                 if not payload:
                                     continue
                                 first_payload_sent = True
+                            #print('RETURNED STREAM PAYLOAD', payload)
                             yield payload
         finally:
             thought = "".join(thought_parts).strip()
@@ -153,6 +192,7 @@ class LiteLLMProvider(LLMProvider):
             model in [m.value for m in FireworksAIModels]
             or model in [m.value for m in OpenAIModels]
             or model in [m.value for m in GoogleModels]
+            or model.startswith('ollama')     # support locally run models
         )
 
     def _process_response(self, raw_output: str) -> str | dict[str, Any]:
@@ -161,6 +201,7 @@ class LiteLLMProvider(LLMProvider):
         If the output mode is JSON, the raw output is parsed and returned as a dict.
         If the output mode is text, the raw output is returned as is.
         """
+        #print('RESPONSE', raw_output)
         if self.output_mode == OutputMode.JSON:
             try:
                 result = json.loads(raw_output)

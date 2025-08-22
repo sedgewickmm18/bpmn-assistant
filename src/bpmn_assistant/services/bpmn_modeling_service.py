@@ -37,6 +37,7 @@ class BpmnModelingService:
             list: The BPMN process.
         """
 
+        logger.info('create_bpmn enter')
         prompt = self.prompt_processor.render_template(
             "create_bpmn.jinja2",
             message_history=message_history_to_string(message_history),
@@ -64,6 +65,7 @@ class BpmnModelingService:
         raise Exception(
             "Max number of retries reached. Could not create the BPMN process."
         )
+        logger.info('create_bpmn leave')
 
     def edit_bpmn(
         self,
@@ -72,10 +74,12 @@ class BpmnModelingService:
         process: list[dict],
         message_history: list[MessageItem],
     ) -> list:
+        logger.info('edit_bpmn enter')
         change_request = define_change_request(
             text_llm_facade, process, message_history
         )
 
         bpmn_editor_service = BpmnEditingService(llm_facade, process, change_request)
 
+        logger.info('edit_bpmn leave')
         return bpmn_editor_service.edit_bpmn()

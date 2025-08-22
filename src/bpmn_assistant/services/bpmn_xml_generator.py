@@ -21,6 +21,8 @@ class BpmnXmlGenerator:
             The BPMN XML string.
         """
 
+        logger.info('create_bpmn_xml enter')
+
         transformed_process = self.transformer.transform(process)
         logger.debug(
             f"Transformed process:\n{json.dumps(transformed_process, indent=2)}"
@@ -66,5 +68,7 @@ class BpmnXmlGenerator:
                 seq_flow.set("name", flow["condition"])
 
         xml_string = ET.tostring(root, encoding="unicode")
+
+        logger.info('create_bpmn_xml leave')
 
         return xml_string
