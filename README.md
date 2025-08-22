@@ -67,6 +67,15 @@ copy .env.example .env
 docker-compose up --build
 ```
 
+Alternatively run the 3 components manually from a shell
+
+- bpmn_assistant (backend, run from ./src/bpmn_assistant)
+  `uv run uvicorn app:app --host 127.0.0.1 --port 8000`
+- bpmn_layout service (run ./src/bpmn_layout_server)
+  `npm install` followed by `node server.js` 
+- bpmn_frontend (run ./src/bpmn_frontend)
+  `npm install` followed by `npm run dev`
+
 5. Open your browser and go to `http://localhost:8080`
 
 ## Prerequisites
@@ -76,6 +85,14 @@ At least one of the following API keys:
 - [Anthropic API key](https://console.anthropic.com/)
 - [Google AI Studio (Gemini) API key](https://aistudio.google.com/app/apikey)
 - [Fireworks AI API key](https://docs.fireworks.ai/getting-started/quickstart)
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- At least one of the following API keys:
+    - [OpenAI API key](https://platform.openai.com/docs/quickstart)
+    - [Anthropic API key](https://console.anthropic.com/)
+    - [Google AI Studio (Gemini) API key](https://aistudio.google.com/app/apikey)
+    - [Fireworks AI API key](https://docs.fireworks.ai/getting-started/quickstart)
+    - Alternatively run a model locally via [Ollama](https://ollama.com) or [llama-swappo](https://github.com/kooshi/llama-swappo)*
 
 Note: You can use any combination of the API keys above, but at least one is required to use the app.
 
@@ -106,6 +123,29 @@ Additional prerequisites for local deployment:
 * Llama 4 Maverick
 * Qwen 3 235B
 * Deepseek V3.1 (recommended)
+
+### Ollama or llama.cpp/llama-swappo
+
+* Every GGUF encoded model
+
+To run llama-swappo
+
+* Clone [llama.cpp](https://github.com/ggml-org/llama.cpp) from its github repo, compile and install it. See [here](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md) for detailed description.
+* Download your GGUF encoded model of your choice from hugging face, for example [granite-4-tiny](https://huggingface.co/ibm-granite/granite-4.0-tiny-preview-GGUF)
+* Clone [llama-swappo](https://github.com/kooshi/llama-swappo) and build the code with `make`, `make install`.
+* Provide a `config.yaml` file like the example below
+* run `build/llama-swap-linux-amd64 --listen :11434`. llama-swappo provides a UI to manage models on `http://localhost:11434/ui/` as well as an Ollama compatible endpoint. It also starts a llama-server child process.
+
+```
+models:
+  "granite4":
+    cmd: |
+      /usr/local/bin/llama-server
+      -m /home/markus-mueller/models/granite-4.0-tiny-preview.Q8_0.gguf
+      -c 12000 -b 8000 --jinja
+      --port ${PORT}
+```
+(assuming llama.cpp has been installed in its default location /usr/local/bin and model GGUF files are available in the ~/models subdirectory)
 
 ## Core features
 
@@ -164,4 +204,8 @@ The application currently supports a subset of BPMN elements:
 
 ## Contact
 
-If you have any questions or feedback, please open an issue on this GitHub repository or [contact me](https://jtlicardo.com/).
+If you have any questions or feedback, please open an issue on this GitHub repository.
+
+## Remarks
+
+Kudos to Josip Tomo Licardo - [contact]((https://jtlicardo.com/).
