@@ -51,14 +51,18 @@ copy .env.example .env
 docker-compose up --build
 ```
 
-Alternatively run the 3 components manually from a shell
+Alternatively install all supporting packages first with python -m pip install . from the main directory`. Then start the 3 components manually from a shell from their respective subdirectories:
 
 - bpmn_assistant (backend, run from ./src/bpmn_assistant)
-  `uv run uvicorn app:app --host 127.0.0.1 --port 8000`
+  `python -m fastapi run --host 127.0.0.1 --port 8000`
+  
 - bpmn_layout service (run ./src/bpmn_layout_server)
-  `npm install` followed by `node server.js` 
+  `npm install` followed by `node server.js`
+  
 - bpmn_frontend (run ./src/bpmn_frontend)
   `npm install` followed by `npm run dev`
+
+Please see below for starting a local LLM.
 
 5. Open your browser and go to `http://localhost:8080`
 
