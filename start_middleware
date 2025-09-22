@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+if test -e src/bpmn_assistant/app.py; then
+        python -m fastapi run src/bpmn_assistant/app.py --host 127.0.0.1 --port 8000
+else:
+        print "Please start from the main directory"
+fi

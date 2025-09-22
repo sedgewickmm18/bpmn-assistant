@@ -1,0 +1,8 @@
+#!/bin/bash
+if test -e src/bpmn_layout_server/server.js; then
+        cd src/bpmn_layout_server
+        node server.js
+else:
+        print "Please start from the main directory"
+fi
+

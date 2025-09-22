@@ -1,0 +1,8 @@
+#!/bin/bash
+if test -e src/bpmn_frontend/vite.config.js; then
+        cd src/bpmn_frontend
+        npm run dev
+else:
+        print "Please start from the main directory"
+fi
+
