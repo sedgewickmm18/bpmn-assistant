@@ -20,8 +20,8 @@ const Models = Object.freeze({
   GPT_4_1: 'gpt-4.1',
   SONNET_4: 'claude-sonnet-4-20250514',
   OPUS_4: 'claude-opus-4-20250514',
-  GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro-preview-03-25',
-  GEMINI_2_5_FLASH: 'gemini/gemini-2.5-flash-preview-04-17',
+  GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro',
+  GEMINI_2_5_FLASH: 'gemini/gemini-2.5-flash',
   LLAMA_4_MAVERICK:
     'fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic',
   QWEN_3_235B: 'fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b',
