@@ -55,6 +55,10 @@ class LiteLLMProvider(LLMProvider):
 
         raw_output = response.choices[0].message.content
 
+        if raw_output is None:
+            logger.error(f"Model returned None content: {response}")
+            raise Exception("Model returned empty content")
+
         if model in [
             FireworksAIModels.DEEPSEEK_R1.value,
             FireworksAIModels.QWEN_3_235B.value,

@@ -7,8 +7,8 @@ class OpenAIModels(Enum):
     GPT_4_1 = "gpt-4.1"
 
 class AnthropicModels(Enum):
-    SONNET_4 = "claude-sonnet-4-20250514"
-    OPUS_4 = "claude-opus-4-20250514"
+    SONNET_4_5 = "claude-sonnet-4-5-20250929"
+    OPUS_4_1 = "claude-opus-4-1-20250805"
 
 
 class GoogleModels(Enum):

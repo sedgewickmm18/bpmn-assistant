@@ -18,8 +18,8 @@ const Models = Object.freeze({
   GPT_5: 'gpt-5',
   GPT_5_MINI: 'gpt-5-mini',
   GPT_4_1: 'gpt-4.1',
-  SONNET_4: 'claude-sonnet-4-20250514',
-  OPUS_4: 'claude-opus-4-20250514',
+  SONNET_4_5: 'claude-sonnet-4-5-20250929',
+  OPUS_4_1: 'claude-opus-4-1-20250805',
   GEMINI_2_5_PRO: 'gemini/gemini-2.5-pro',
   GEMINI_2_5_FLASH: 'gemini/gemini-2.5-flash',
   LLAMA_4_MAVERICK:
@@ -50,13 +50,13 @@ export default {
         },
         { value: Models.GPT_4_1, title: 'GPT-4.1', provider: Providers.OPENAI },
         {
-          value: Models.SONNET_4,
-          title: 'Claude Sonnet 4',
+          value: Models.SONNET_4_5,
+          title: 'Claude Sonnet 4.5',
           provider: Providers.ANTHROPIC,
         },
         {
-          value: Models.OPUS_4,
-          title: 'Claude Opus 4',
+          value: Models.OPUS_4_1,
+          title: 'Claude Opus 4.1',
           provider: Providers.ANTHROPIC,
         },
         {
