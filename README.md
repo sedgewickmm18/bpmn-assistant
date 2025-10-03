@@ -1,7 +1,11 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/jtlicardo/bpmn-assistant?style=social)](https://github.com/jtlicardo/bpmn-assistant/stargazers)
+[![CI](https://github.com/jtlicardo/bpmn-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/jtlicardo/bpmn-assistant/actions/workflows/ci.yml)
+
+
 ![Logo](images/bpmn_assistant_logo.png)
 
-BPMN Assistant is an application that uses Large Language Models (LLMs) to assist with creating, editing, and
-interpreting Business Process Model and Notation (BPMN) diagrams.
+LLM-powered creation, editing, and interpretation of Business Process Model and Notation (BPMN) diagrams.
 
 ## Quickstart
 
