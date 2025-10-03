@@ -36,7 +36,6 @@ const Models = Object.freeze({
     'fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic',
   QWEN_3_235B: 'fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b',
   DEEPSEEK_V3_1: 'fireworks_ai/accounts/fireworks/models/deepseek-v3p1-terminus',
-  DEEPSEEK_R1: 'fireworks_ai/accounts/fireworks/models/deepseek-r1',
 });
 
 const Providers = Object.freeze({
@@ -92,11 +91,6 @@ export default {
         {
           value: Models.DEEPSEEK_V3_1,
           title: 'Deepseek V3.1',
-          provider: Providers.FIREWORKS_AI,
-        },
-        {
-          value: Models.DEEPSEEK_R1,
-          title: 'Deepseek R1',
           provider: Providers.FIREWORKS_AI,
         },
       ],

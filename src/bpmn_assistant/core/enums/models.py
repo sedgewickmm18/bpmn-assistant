@@ -22,4 +22,3 @@ class FireworksAIModels(Enum):
     )
     QWEN_3_235B = "fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b"
     DEEPSEEK_V3_1 = "fireworks_ai/accounts/fireworks/models/deepseek-v3p1-terminus"
-    DEEPSEEK_R1 = "fireworks_ai/accounts/fireworks/models/deepseek-r1"

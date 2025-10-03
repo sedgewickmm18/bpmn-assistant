@@ -90,7 +90,6 @@ Note: You can use any combination of the API keys above, but at least one is req
 * Llama 4 Maverick
 * Qwen 3 235B
 * Deepseek V3.1 (recommended)
-* Deepseek R1
 
 ## Core features
 
