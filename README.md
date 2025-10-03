@@ -119,16 +119,16 @@ The application currently supports a subset of BPMN elements:
 * Parallel gateway
 
 ### Events
-**Start Events:**
+**Start events**
 * Start event
 * Timer start event
 * Message start event
 
-**End Events:**
+**End events**
 * End event
 * Message end event
 
-**Intermediate Events:**
+**Intermediate events**
 * Intermediate throw event (generic)
 * Intermediate throw event (message)
 * Intermediate catch event (generic)
