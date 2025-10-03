@@ -48,6 +48,7 @@ class BpmnModelingService:
             attempts += 1
             try:
                 response = llm_facade.call(prompt, max_tokens=3000)
+                logger.debug(f"LLM response:\n{json.dumps(response, indent=2)}")
                 process = response["process"]
                 validate_bpmn(process)
                 logger.debug(

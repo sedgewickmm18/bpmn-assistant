@@ -27,13 +27,25 @@ Labels must be clear and concise (ideally 2-4 words).
 
 ## Events
 
-Specify the event type in the 'type' field. Only "startEvent" and "endEvent" options are supported.
+Specify the event type in the 'type' field. The following event types are supported: "startEvent", "endEvent", "intermediateThrowEvent", "intermediateCatchEvent".
+
+Events can optionally have an event definition that specifies what triggers or is triggered by the event:
+- Use 'timerEventDefinition' for time-based events (schedules, delays, timeouts)
+- Use 'messageEventDefinition' for message-based events (sending or receiving messages)
+- Omit 'eventDefinition' for generic/none events
+
+Event types:
+- 'startEvent' - starts the process (can have timerEventDefinition or messageEventDefinition)
+- 'endEvent' - ends the process (can have messageEventDefinition)
+- 'intermediateThrowEvent' - throws/triggers an event during the process (typically with messageEventDefinition)
+- 'intermediateCatchEvent' - waits for an event during the process (can have timerEventDefinition or messageEventDefinition)
 
 ```json
 {
-    "type": String = "startEvent" | "endEvent",
+    "type": String = "startEvent" | "endEvent" | "intermediateThrowEvent" | "intermediateCatchEvent",
     "id": String,
     "label": String, // OPTIONAL: short event description
+    "eventDefinition": String = "timerEventDefinition" | "messageEventDefinition", // OPTIONAL: event trigger type
 }
 ```
 

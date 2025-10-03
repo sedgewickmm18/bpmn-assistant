@@ -4,28 +4,39 @@ from bpmn_assistant.core.enums import BPMNElementType
 from bpmn_assistant.core.schemas import BPMNTask, ExclusiveGateway, ParallelGateway
 
 
-def validate_bpmn(process: list) -> None:
+def validate_bpmn(process: list, is_top_level: bool = True) -> None:
     """
     Validate the BPMN process.
     Args:
         process: The BPMN process in JSON format.
+        is_top_level: Whether this is the top-level process (not a branch).
     Raises:
         ValueError: If the BPMN process, or any of its elements, is invalid.
     """
     seen_ids = set()
+    start_event_count = 0
+
     for element in process:
         validate_element(element)
-        
+
         if element["id"] in seen_ids:
             raise ValueError(f"Duplicate element ID found: {element['id']}")
         seen_ids.add(element["id"])
 
+        # Count start events at the top level
+        if is_top_level and element["type"] == BPMNElementType.START_EVENT.value:
+            start_event_count += 1
+
         if element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
             for branch in element["branches"]:
-                validate_bpmn(branch["path"])
+                validate_bpmn(branch["path"], is_top_level=False)
         if element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
             for branch in element["branches"]:
-                validate_bpmn(branch)
+                validate_bpmn(branch, is_top_level=False)
+
+    # Check for exactly one start event at the top level
+    if is_top_level and start_event_count != 1:
+        raise ValueError(f"Process must contain exactly one start event, found {start_event_count}")
 
 
 def validate_element(element: dict) -> None:
@@ -52,6 +63,11 @@ def validate_element(element: dict) -> None:
         BPMNElementType.TASK.value,
         BPMNElementType.USER_TASK.value,
         BPMNElementType.SERVICE_TASK.value,
+        BPMNElementType.SEND_TASK.value,
+        BPMNElementType.RECEIVE_TASK.value,
+        BPMNElementType.BUSINESS_RULE_TASK.value,
+        BPMNElementType.MANUAL_TASK.value,
+        BPMNElementType.SCRIPT_TASK.value,
     ]:
         _validate_task(element)
 

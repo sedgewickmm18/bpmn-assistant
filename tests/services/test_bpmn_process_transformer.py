@@ -186,3 +186,54 @@ class TestBpmnProcessTransformer:
         }
 
         assert result == expected
+
+    def test_transform_preserves_event_definitions(self):
+        """Test that event definitions (timer, message) are preserved during transformation"""
+        self.transformer = BpmnProcessTransformer()
+
+        process = [
+            {
+                "type": "startEvent",
+                "id": "start",
+                "label": "Timer start",
+                "eventDefinition": "timerEventDefinition",
+            },
+            {
+                "type": "task",
+                "id": "task1",
+                "label": "Do something",
+            },
+            {
+                "type": "intermediateCatchEvent",
+                "id": "catch1",
+                "label": "Wait for message",
+                "eventDefinition": "messageEventDefinition",
+            },
+            {
+                "type": "intermediateThrowEvent",
+                "id": "throw1",
+                "label": "Send notification",
+                "eventDefinition": "messageEventDefinition",
+            },
+            {
+                "type": "endEvent",
+                "id": "end",
+                "label": "Process complete",
+                "eventDefinition": "messageEventDefinition",
+            },
+        ]
+
+        result = self.transformer.transform(process)
+
+        # Verify that eventDefinition is preserved in all events
+        start_element = next(e for e in result["elements"] if e["id"] == "start")
+        assert start_element["eventDefinition"] == "timerEventDefinition"
+
+        catch_element = next(e for e in result["elements"] if e["id"] == "catch1")
+        assert catch_element["eventDefinition"] == "messageEventDefinition"
+
+        throw_element = next(e for e in result["elements"] if e["id"] == "throw1")
+        assert throw_element["eventDefinition"] == "messageEventDefinition"
+
+        end_element = next(e for e in result["elements"] if e["id"] == "end")
+        assert end_element["eventDefinition"] == "messageEventDefinition"

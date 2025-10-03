@@ -25,7 +25,8 @@ class BpmnJsonGenerator:
         """
         Create the JSON representation of the process from the BPMN XML
         Constraints:
-            - Supported elements: task, userTask, serviceTask, sendTask, receiveTask, businessRuleTask, manualTask, scriptTask, startEvent, endEvent, exclusiveGateway, parallelGateway
+            - Supported elements: task, userTask, serviceTask, sendTask, receiveTask, businessRuleTask, manualTask, scriptTask, startEvent, endEvent, intermediateThrowEvent, intermediateCatchEvent, exclusiveGateway, parallelGateway
+            - Supported event definitions: timerEventDefinition, messageEventDefinition
             - The process must have only one start event
             - The process must not contain pools or lanes
             - Parallel gateways must have a corresponding join gateway
@@ -316,6 +317,8 @@ class BpmnJsonGenerator:
             BPMNElementType.EXCLUSIVE_GATEWAY.value,
             BPMNElementType.START_EVENT.value,
             BPMNElementType.END_EVENT.value,
+            BPMNElementType.INTERMEDIATE_THROW_EVENT.value,
+            BPMNElementType.INTERMEDIATE_CATCH_EVENT.value,
         }
 
         for elem in process:
@@ -331,6 +334,13 @@ class BpmnJsonGenerator:
                     name = elem.get("name")
                     if name:  # Only add label if name exists and is not empty
                         self.elements[elem_id]["label"] = name
+
+                # Check for event definitions (timerEventDefinition, messageEventDefinition, etc.)
+                for child in elem:
+                    child_tag = child.tag.split("}")[-1]
+                    if child_tag.endswith("EventDefinition"):
+                        self.elements[elem_id]["eventDefinition"] = child_tag
+                        break
             elif tag == "sequenceFlow":
                 self.flows[elem_id] = {
                     "id": elem_id,

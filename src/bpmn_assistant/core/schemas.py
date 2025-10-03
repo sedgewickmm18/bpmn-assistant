@@ -26,17 +26,21 @@ class BPMNTask(BaseModel):
     label: str
 
 
-EventType = Literal["startEvent", "endEvent"]
+EventType = Literal["startEvent", "endEvent", "intermediateThrowEvent", "intermediateCatchEvent"]
+EventDefinitionType = Literal["timerEventDefinition", "messageEventDefinition"]
 
 
 class BPMNEvent(BaseModel):
     """
     Represents a BPMN event.
-    'type' must be one of: 'startEvent', 'endEvent'.
+    'type' must be one of: 'startEvent', 'endEvent', 'intermediateThrowEvent', 'intermediateCatchEvent'.
+    'eventDefinition' is optional and specifies the event type (timer, message, etc.)
     """
 
     type: EventType
     id: str
+    label: Optional[str] = None
+    eventDefinition: Optional[EventDefinitionType] = None
 
 
 class ExclusiveGatewayBranch(BaseModel):

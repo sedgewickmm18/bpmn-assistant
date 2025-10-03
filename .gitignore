@@ -193,3 +193,4 @@ logs/
 scratch.py
 
 *.ps1
+.claude

@@ -54,6 +54,13 @@ class BpmnXmlGenerator:
             for outgoing in element["outgoing"]:
                 ET.SubElement(elem, "outgoing").text = outgoing
 
+            # Add event definition if it exists
+            if "eventDefinition" in element and element["eventDefinition"]:
+                event_def_type = element["eventDefinition"]
+                # Create event definition element with a unique ID
+                event_def_elem = ET.SubElement(elem, event_def_type)
+                event_def_elem.set("id", f"{event_def_type}_{element['id']}")
+
         # Add flows
         for flow in transformed_process["flows"]:
             seq_flow = ET.SubElement(process_element, "sequenceFlow")

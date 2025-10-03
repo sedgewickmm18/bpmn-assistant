@@ -72,7 +72,6 @@ class BpmnProcessTransformer:
                 )
 
             for branch in element["branches"]:
-
                 if not branch.get("path"):
                     # Connect the exclusive gateway either to the next element in the process
                     # or to the branch's "next" element if specified
@@ -145,13 +144,17 @@ class BpmnProcessTransformer:
                 else parent_next_element_id
             )
 
-            elements.append(
-                {
-                    "id": element["id"],
-                    "type": element["type"],
-                    "label": element.get("label", None),
-                }
-            )
+            transformed_element = {
+                "id": element["id"],
+                "type": element["type"],
+                "label": element.get("label", None),
+            }
+
+            # Preserve eventDefinition if present
+            if "eventDefinition" in element:
+                transformed_element["eventDefinition"] = element["eventDefinition"]
+
+            elements.append(transformed_element)
 
             if element["type"] == "exclusiveGateway":
                 join_gateway_id = handle_exclusive_gateway(element, next_element_id)

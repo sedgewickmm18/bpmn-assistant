@@ -104,6 +104,7 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 The application currently supports a subset of BPMN elements:
 
+### Tasks
 * Task
 * User task
 * Service task
@@ -112,10 +113,27 @@ The application currently supports a subset of BPMN elements:
 * Business rule task
 * Manual task
 * Script task
+
+### Gateways
 * Exclusive gateway
 * Parallel gateway
+
+### Events
+**Start Events:**
 * Start event
+* Timer start event
+* Message start event
+
+**End Events:**
 * End event
+* Message end event
+
+**Intermediate Events:**
+* Intermediate throw event (generic)
+* Intermediate throw event (message)
+* Intermediate catch event (generic)
+* Intermediate catch event (timer)
+* Intermediate catch event (message)
 
 ## Limitations
 

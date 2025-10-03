@@ -276,6 +276,50 @@ Textual description: "A customer fills out an order form manually. The system se
 
 ---
 
+Textual description: "A batch process starts at midnight using a timer. The system processes pending orders and waits for 5 minutes. Then it sends a completion notification and waits to receive a confirmation message before ending."
+
+```json
+{
+  "process": [
+    {
+      "type": "startEvent",
+      "id": "start",
+      "label": "Start at midnight",
+      "eventDefinition": "timerEventDefinition"
+    },
+    {
+      "type": "task",
+      "id": "task1",
+      "label": "Process pending orders"
+    },
+    {
+      "type": "intermediateCatchEvent",
+      "id": "timer1",
+      "label": "Wait 5 minutes",
+      "eventDefinition": "timerEventDefinition"
+    },
+    {
+      "type": "intermediateThrowEvent",
+      "id": "message1",
+      "label": "Send completion notification",
+      "eventDefinition": "messageEventDefinition"
+    },
+    {
+      "type": "intermediateCatchEvent",
+      "id": "message2",
+      "label": "Wait for confirmation",
+      "eventDefinition": "messageEventDefinition"
+    },
+    {
+      "type": "endEvent",
+      "id": "end",
+    }
+  ]
+}
+```
+
+---
+
 Textual description: "An order process starts when a customer submits an order. The order is then processed by the system. If the order is valid, it is fulfilled and the process ends with a successful delivery. If the order is invalid, the process ends with order rejection."
 
 ```json

@@ -1,4 +1,4 @@
-from .bpmn_element_type import BPMNElementType
+from .bpmn_element_type import BPMNElementType, EventDefinitionType
 from .message_roles import MessageRole
 from .models import OpenAIModels, AnthropicModels, GoogleModels, FireworksAIModels
 from .output_modes import OutputMode
@@ -12,5 +12,6 @@ __all__ = [
     "Provider",
     "OutputMode",
     "BPMNElementType",
+    "EventDefinitionType",
     "MessageRole",
 ]
