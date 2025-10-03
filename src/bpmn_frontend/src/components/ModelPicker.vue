@@ -1,16 +1,26 @@
 <template>
-  <v-select
-    class="model-picker"
-    placeholder="Select model"
-    density="compact"
-    :items="availableModels"
-    :modelValue="selectedModel"
-    @update:modelValue="onModelChange"
-    hide-details
-    :list-props="{ density: 'compact' }"
-    no-data-text="Please provide API keys"
-    variant="outlined"
-  ></v-select>
+  <div>
+    <v-select
+      class="model-picker"
+      placeholder="Select model"
+      density="compact"
+      :items="availableModels"
+      :modelValue="selectedModel"
+      @update:modelValue="onModelChange"
+      hide-details
+      :list-props="{ density: 'compact' }"
+      no-data-text="Please provide API keys"
+      variant="outlined"
+    ></v-select>
+    <div
+      v-if="showReasoningModelWarning"
+      class="text-caption text-warning mt-1"
+      style="width: 200px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
+      title="Reasoning model - may be slower"
+    >
+      ⚠️ Reasoning model - slower
+    </div>
+  </div>
 </template>
 
 <script>
@@ -99,6 +109,12 @@ export default {
         this.availableProviders.includes(model.provider)
       );
     },
+    showReasoningModelWarning() {
+      return (
+        this.selectedModel === Models.GPT_5 ||
+        this.selectedModel === Models.GPT_5_MINI
+      );
+    },
   },
   methods: {
     onModelChange(model) {
@@ -126,13 +142,13 @@ export default {
         );
 
         if (this.availableProviders.includes(Providers.OPENAI)) {
-          this.onModelChange(Models.GPT_5);
+          this.onModelChange(Models.GPT_4_1);
         } else if (this.availableProviders.includes(Providers.ANTHROPIC)) {
-          this.onModelChange(Models.SONNET_4);
+          this.onModelChange(Models.SONNET_4_5);
         } else if (this.availableProviders.includes(Providers.GOOGLE)) {
           this.onModelChange(Models.GEMINI_2_5_PRO);
         } else if (this.availableProviders.includes(Providers.FIREWORKS_AI)) {
-          this.onModelChange(Models.LLAMA_4_MAVERICK);
+          this.onModelChange(Models.DEEPSEEK_V3_1);
         }
       } catch (error) {
         console.error('Error fetching available providers', error);

@@ -73,23 +73,23 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 * GPT-5
 * GPT-5 mini
-* GPT-4.1
+* GPT-4.1 (recommended)
 
 ### Anthropic
 
-* Claude Sonnet 4.5
+* Claude Sonnet 4.5 (recommended)
 * Claude Opus 4.1
 
 ### Google
 
 * Gemini 2.5 Flash
-* Gemini 2.5 Pro
+* Gemini 2.5 Pro (recommended)
 
 ### Fireworks AI
 
 * Llama 4 Maverick
 * Qwen 3 235B
-* Deepseek V3.1
+* Deepseek V3.1 (recommended)
 * Deepseek R1
 
 ## Core features
