@@ -232,6 +232,50 @@ Textual description: "The process starts with a decision. If Option A is selecte
 
 ---
 
+Textual description: "A customer fills out an order form manually. The system sends a confirmation email and then waits to receive payment confirmation. A script validates the payment data, and business rules determine if the customer is eligible for a discount."
+
+```json
+{
+  "process": [
+    {
+      "type": "startEvent",
+      "id": "start",
+    },
+    {
+      "type": "manualTask",
+      "id": "task1",
+      "label": "Fill out order form"
+    },
+    {
+      "type": "sendTask",
+      "id": "task2",
+      "label": "Send confirmation email"
+    },
+    {
+      "type": "receiveTask",
+      "id": "task3",
+      "label": "Receive payment confirmation"
+    },
+    {
+      "type": "scriptTask",
+      "id": "task4",
+      "label": "Validate payment data"
+    },
+    {
+      "type": "businessRuleTask",
+      "id": "task5",
+      "label": "Determine discount eligibility"
+    },
+    {
+      "type": "endEvent",
+      "id": "end",
+    }
+  ]
+}
+```
+
+---
+
 Textual description: "An order process starts when a customer submits an order. The order is then processed by the system. If the order is valid, it is fulfilled and the process ends with a successful delivery. If the order is invalid, the process ends with order rejection."
 
 ```json

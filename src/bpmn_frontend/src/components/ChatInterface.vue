@@ -66,7 +66,7 @@
 
       <div v-if="messages.length === 0">
         <v-alert
-          text="Supported elements: start and end events, tasks (user, service), gateways (exclusive, parallel), sequence flows"
+          text="Supported elements: start and end events, tasks, gateways (exclusive, parallel), sequence flows"
           class="mb-3"
           type="info"
         />

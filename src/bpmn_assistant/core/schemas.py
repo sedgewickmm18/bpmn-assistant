@@ -3,7 +3,7 @@ from typing import List, Optional, Union, Dict, Any
 from pydantic import BaseModel, RootModel
 from typing_extensions import Literal
 
-TaskType = Literal["task", "userTask", "serviceTask"]
+TaskType = Literal["task", "userTask", "serviceTask", "sendTask", "receiveTask", "businessRuleTask", "manualTask", "scriptTask"]
 
 
 class MessageItem(BaseModel):
@@ -18,7 +18,7 @@ class MessageItem(BaseModel):
 class BPMNTask(BaseModel):
     """
     Represents a BPMN task.
-    'type' must be one of: 'task', 'userTask', or 'serviceTask'.
+    'type' must be one of: 'task', 'userTask', 'serviceTask', 'sendTask', 'receiveTask', 'businessRuleTask', 'manualTask', or 'scriptTask'.
     """
 
     type: TaskType

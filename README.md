@@ -89,7 +89,7 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 * Llama 4 Maverick
 * Qwen 3 235B
-* Deepseek V3
+* Deepseek V3.1
 * Deepseek R1
 
 ## Core features
@@ -107,6 +107,11 @@ The application currently supports a subset of BPMN elements:
 * Task
 * User task
 * Service task
+* Send task
+* Receive task
+* Business rule task
+* Manual task
+* Script task
 * Exclusive gateway
 * Parallel gateway
 * Start event

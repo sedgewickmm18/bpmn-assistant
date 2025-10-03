@@ -25,7 +25,7 @@ class BpmnJsonGenerator:
         """
         Create the JSON representation of the process from the BPMN XML
         Constraints:
-            - Supported elements: task, userTask, serviceTask, startEvent, endEvent, exclusiveGateway, parallelGateway
+            - Supported elements: task, userTask, serviceTask, sendTask, receiveTask, businessRuleTask, manualTask, scriptTask, startEvent, endEvent, exclusiveGateway, parallelGateway
             - The process must have only one start event
             - The process must not contain pools or lanes
             - Parallel gateways must have a corresponding join gateway
@@ -308,6 +308,11 @@ class BpmnJsonGenerator:
             BPMNElementType.TASK.value,
             BPMNElementType.USER_TASK.value,
             BPMNElementType.SERVICE_TASK.value,
+            BPMNElementType.SEND_TASK.value,
+            BPMNElementType.RECEIVE_TASK.value,
+            BPMNElementType.BUSINESS_RULE_TASK.value,
+            BPMNElementType.MANUAL_TASK.value,
+            BPMNElementType.SCRIPT_TASK.value,
             BPMNElementType.EXCLUSIVE_GATEWAY.value,
             BPMNElementType.START_EVENT.value,
             BPMNElementType.END_EVENT.value,
