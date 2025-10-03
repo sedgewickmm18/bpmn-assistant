@@ -11,6 +11,7 @@ class BPMNElementType(Enum):
     MANUAL_TASK = "manualTask"
     SCRIPT_TASK = "scriptTask"
     EXCLUSIVE_GATEWAY = "exclusiveGateway"
+    INCLUSIVE_GATEWAY = "inclusiveGateway"
     PARALLEL_GATEWAY = "parallelGateway"
     START_EVENT = "startEvent"
     END_EVENT = "endEvent"

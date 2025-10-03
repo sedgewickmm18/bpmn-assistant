@@ -77,10 +77,9 @@ def replace_reasoning_model(model: str) -> str:
     Replaces reasoning models with more lightweight models.
     """
     if model in [
-        FireworksAIModels.DEEPSEEK_R1.value,
         FireworksAIModels.QWEN_3_235B.value,
     ]:
-        return FireworksAIModels.LLAMA_4_MAVERICK.value
+        return FireworksAIModels.DEEPSEEK_V3_1.value
     return model
 
 

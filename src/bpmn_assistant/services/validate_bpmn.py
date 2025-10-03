@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 
 from bpmn_assistant.core.enums import BPMNElementType
-from bpmn_assistant.core.schemas import BPMNTask, ExclusiveGateway, ParallelGateway
+from bpmn_assistant.core.schemas import BPMNTask, ExclusiveGateway, InclusiveGateway, ParallelGateway
 
 
 def validate_bpmn(process: list, is_top_level: bool = True) -> None:
@@ -28,6 +28,9 @@ def validate_bpmn(process: list, is_top_level: bool = True) -> None:
             start_event_count += 1
 
         if element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
+            for branch in element["branches"]:
+                validate_bpmn(branch["path"], is_top_level=False)
+        if element["type"] == BPMNElementType.INCLUSIVE_GATEWAY.value:
             for branch in element["branches"]:
                 validate_bpmn(branch["path"], is_top_level=False)
         if element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
@@ -74,6 +77,9 @@ def validate_element(element: dict) -> None:
     elif element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
         _validate_exclusive_gateway(element)
 
+    elif element["type"] == BPMNElementType.INCLUSIVE_GATEWAY.value:
+        _validate_inclusive_gateway(element)
+
     elif element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
         _validate_parallel_gateway(element)
 
@@ -103,6 +109,27 @@ def _validate_exclusive_gateway(element: dict) -> None:
         ExclusiveGateway.model_validate(element)
     except ValidationError:
         raise ValueError(f"Invalid exclusive gateway element: {element}")
+
+
+def _validate_inclusive_gateway(element: dict) -> None:
+    if "label" not in element:
+        raise ValueError(f"Inclusive gateway is missing a label: {element}")
+    if "branches" not in element or not isinstance(element["branches"], list):
+        raise ValueError(
+            f"Inclusive gateway is missing or has invalid 'branches': {element}"
+        )
+    for branch in element["branches"]:
+        # Default branches don't require a condition, but all branches need a path
+        if "path" not in branch:
+            raise ValueError(f"Invalid branch in inclusive gateway (missing 'path'): {branch}")
+        # Non-default branches must have a condition
+        if not branch.get("is_default", False) and "condition" not in branch:
+            raise ValueError(f"Invalid branch in inclusive gateway (non-default branch missing 'condition'): {branch}")
+
+    try:
+        InclusiveGateway.model_validate(element)
+    except ValidationError:
+        raise ValueError(f"Invalid inclusive gateway element: {element}")
 
 
 def _validate_parallel_gateway(element: dict) -> None:

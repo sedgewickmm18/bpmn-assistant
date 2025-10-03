@@ -755,3 +755,55 @@ class TestBpmnJsonGenerator:
         with pytest.raises(ValueError, match="Process must contain exactly one start event"):
             bpmn_json_generator.create_bpmn_json(bpmn_xml_two_start_events)
 
+    def test_create_bpmn_json_inclusive_gateway(self, bpmn_xml_inclusive_gateway):
+        bpmn_json_generator = BpmnJsonGenerator()
+
+        result = bpmn_json_generator.create_bpmn_json(bpmn_xml_inclusive_gateway)
+
+        expected = [
+            {"type": "startEvent", "id": "start"},
+            {
+                "type": "inclusiveGateway",
+                "id": "inc1",
+                "label": "Which actions to perform?",
+                "has_join": True,
+                "branches": [
+                    {
+                        "condition": "Condition A is true",
+                        "path": [
+                            {
+                                "type": "task",
+                                "id": "taskA",
+                                "label": "Perform Action A",
+                            }
+                        ],
+                        "is_default": False,
+                    },
+                    {
+                        "condition": "Condition B is true",
+                        "path": [
+                            {
+                                "type": "task",
+                                "id": "taskB",
+                                "label": "Perform Action B",
+                            }
+                        ],
+                        "is_default": False,
+                    },
+                    {
+                        "path": [
+                            {
+                                "type": "task",
+                                "id": "taskDefault",
+                                "label": "Perform Default Action",
+                            }
+                        ],
+                        "is_default": True,
+                    },
+                ],
+            },
+            {"type": "endEvent", "id": "end"},
+        ]
+
+        assert result == expected
+

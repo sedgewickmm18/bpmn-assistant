@@ -65,12 +65,6 @@
       </div>
 
       <div v-if="messages.length === 0">
-        <v-alert
-          text="Supported elements: start and end events, tasks, gateways (exclusive, parallel), sequence flows"
-          class="mb-3"
-          type="info"
-        />
-
         <MessageCard
           role="assistant"
           content="Welcome to BPMN Assistant! I can help you understand and create BPMN processes. Let's start by discussing your BPMN needs or creating a new process from scratch. How would you like to begin?"

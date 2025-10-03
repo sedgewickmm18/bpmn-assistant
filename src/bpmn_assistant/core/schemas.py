@@ -70,6 +70,36 @@ class ExclusiveGateway(BaseModel):
     branches: List[ExclusiveGatewayBranch]
 
 
+class InclusiveGatewayBranch(BaseModel):
+    """
+    Represents a branch of an inclusive gateway.
+    - 'condition': textual condition for the branch (not required for default branches)
+    - 'path': array of BPMN elements executed if the condition is met
+    - 'next': optional ID of the next element (if not following default sequence)
+    - 'is_default': marks this branch as the default (taken when no conditions are met)
+    """
+
+    condition: Optional[str] = None
+    path: List["BPMNElement"] = []
+    next: Optional[str] = None
+    is_default: bool = False
+
+
+class InclusiveGateway(BaseModel):
+    """
+    Represents a BPMN inclusive gateway (OR-gateway).
+    Multiple branches can be taken simultaneously based on their conditions.
+    - 'has_join': indicates whether this gateway also merges paths
+    - 'branches': list of inclusive branches (can have multiple conditions fulfilled)
+    """
+
+    type: Literal["inclusiveGateway"]
+    id: str
+    label: str
+    has_join: bool
+    branches: List[InclusiveGatewayBranch]
+
+
 class ParallelGateway(BaseModel):
     """
     Represents a BPMN parallel gateway.
@@ -82,7 +112,7 @@ class ParallelGateway(BaseModel):
     branches: List[List["BPMNElement"]]
 
 
-BPMNElement = Union[BPMNTask, BPMNEvent, ExclusiveGateway, ParallelGateway]
+BPMNElement = Union[BPMNTask, BPMNEvent, ExclusiveGateway, InclusiveGateway, ParallelGateway]
 
 
 class ProcessModel(BaseModel):

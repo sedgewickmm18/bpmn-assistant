@@ -48,6 +48,10 @@ class BpmnXmlGenerator:
             if element["label"]:
                 elem.set("name", element["label"])
 
+            # Add default flow attribute for inclusive/exclusive gateways if it exists
+            if "default_flow" in element and element["default_flow"]:
+                elem.set("default", element["default_flow"])
+
             # Add incoming and outgoing flows as child elements
             for incoming in element["incoming"]:
                 ET.SubElement(elem, "incoming").text = incoming

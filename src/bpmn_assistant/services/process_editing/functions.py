@@ -145,6 +145,7 @@ def update_element(process: list[dict], new_element: dict) -> dict:
         )
     elif new_element["type"] in [
         "exclusiveGateway",
+        "inclusiveGateway",
         "parallelGateway",
     ]:
         raise GatewayUpdateError("Cannot update a gateway element")

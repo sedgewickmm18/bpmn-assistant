@@ -60,7 +60,6 @@ class LiteLLMProvider(LLMProvider):
             raise Exception("Model returned empty content")
 
         if model in [
-            FireworksAIModels.DEEPSEEK_R1.value,
             FireworksAIModels.QWEN_3_235B.value,
         ]:
             # Extract thinking phase and clean output

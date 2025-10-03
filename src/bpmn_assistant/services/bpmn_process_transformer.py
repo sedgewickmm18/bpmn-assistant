@@ -111,6 +111,79 @@ class BpmnProcessTransformer:
 
             return join_gateway_id
 
+        def handle_inclusive_gateway(
+            element: dict, next_element_id: Optional[str] = None
+        ) -> Optional[str]:
+            # If the inclusive gateway has a 'join' gateway, add it to the elements list
+            join_gateway_id = None
+            default_flow_id = None
+            if element.get("has_join", False):
+                join_gateway_id = f"{element['id']}-join"
+                elements.append(
+                    {
+                        "id": join_gateway_id,
+                        "type": "inclusiveGateway",
+                        "label": None,
+                    }
+                )
+
+            for branch in element["branches"]:
+                is_default = branch.get("is_default", False)
+
+                if not branch.get("path"):
+                    # Connect the inclusive gateway either to the next element in the process
+                    # or to the branch's "next" element if specified
+                    target_ref = branch.get("next", next_element_id)
+                    if target_ref:
+                        flow_id = f"{element['id']}-{target_ref}"
+                        add_flow(
+                            element["id"],
+                            target_ref,
+                            flow_id=flow_id,
+                            condition=branch.get("condition", None),
+                        )
+                        if is_default:
+                            default_flow_id = flow_id
+                    continue  # Skip further processing for empty branches
+
+                branch_next = branch.get("next")
+
+                if branch_next:
+                    branch_structure = self.transform(branch["path"], branch_next)
+                else:
+                    branch_structure = self.transform(
+                        branch["path"], join_gateway_id or next_element_id
+                    )
+
+                elements.extend(branch_structure["elements"])
+                flows.extend(branch_structure["flows"])
+
+                # Add the flow from the inclusive gateway to the first element in the branch
+                first_element = (
+                    branch_structure["elements"][0]
+                    if branch_structure["elements"]
+                    else None
+                )
+                if first_element:
+                    flow_id = f"{element['id']}-{first_element['id']}"
+                    add_flow(
+                        element["id"],
+                        first_element["id"],
+                        flow_id=flow_id,
+                        condition=branch.get("condition"),
+                    )
+                    if is_default:
+                        default_flow_id = flow_id
+
+            # Store default flow ID on the gateway element if present
+            if default_flow_id:
+                for elem in elements:
+                    if elem["id"] == element["id"]:
+                        elem["default_flow"] = default_flow_id
+                        break
+
+            return join_gateway_id
+
         def handle_parallel_gateway(element: dict) -> str:
             # Create a 'join' parallel gateway element
             join_gateway_id = f"{element['id']}-join"
@@ -158,6 +231,12 @@ class BpmnProcessTransformer:
 
             if element["type"] == "exclusiveGateway":
                 join_gateway_id = handle_exclusive_gateway(element, next_element_id)
+
+                # Connect the join gateway to the next element in the process
+                if join_gateway_id and next_element_id:
+                    add_flow(join_gateway_id, next_element_id)
+            elif element["type"] == "inclusiveGateway":
+                join_gateway_id = handle_inclusive_gateway(element, next_element_id)
 
                 # Connect the join gateway to the next element in the process
                 if join_gateway_id and next_element_id:

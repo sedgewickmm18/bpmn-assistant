@@ -85,6 +85,43 @@ If the process description does not explicitly mention the 'else' branch or spec
 }
 ```
 
+### Inclusive gateway
+
+An inclusive gateway (OR-gateway) allows multiple branches to be taken simultaneously based on their conditions. Unlike exclusive gateways where only one path is taken, inclusive gateways evaluate all conditions and take ALL branches where the condition is fulfilled.
+
+Use inclusive gateways when:
+- Multiple parallel activities may be needed based on different conditions (e.g., prepare pasta AND salad AND steak based on order)
+- The number of parallel paths is determined by data/variables rather than being fixed
+- You need "one or more" behavior rather than "exactly one" (exclusive) or "all" (parallel)
+
+Each branch must include an array of elements. All branches with fulfilled conditions will be executed in parallel.
+Non-default branches MUST have a condition. Default branches should NOT have a condition.
+Optionally, one branch can be marked as the default (is_default: true). This branch is taken only when NO other conditions are met.
+
+```json
+{
+    "type": String = "inclusiveGateway",
+    "id": String,
+    "label": String, // label for the gateway (e.g. "Which courses to prepare?")
+    "has_join": Boolean, // whether the gateway contains a join element that merges the branches
+    "branches": [
+        {
+            "condition": String, // REQUIRED for non-default branches (e.g. "Order includes pasta")
+            "path": [], // array of elements that are executed if the condition is met
+            "next": String, // OPTIONAL: ID of the next element if not following default sequence
+            "is_default": Boolean, // OPTIONAL: marks this as the default branch (default: false)
+        },
+        {
+            // Default branch example - NO condition field
+            "path": [], // array of elements executed when no other conditions are met
+            "next": String, // OPTIONAL: as above
+            "is_default": true, // This marks it as the default branch
+        },
+        // ... more branches
+    ],
+}
+```
+
 ### Parallel gateway
 
 Specify "branches" as an array of arrays, where each sub-array lists elements executed in parallel.

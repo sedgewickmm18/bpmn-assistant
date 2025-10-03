@@ -596,3 +596,8 @@ def bpmn_xml_two_start_events():
     """BPMN XML with two start events."""
     return load_bpmn("two_start_events.bpmn")
 
+@pytest.fixture
+def bpmn_xml_inclusive_gateway():
+    """BPMN XML with inclusive gateway with default branch."""
+    return load_bpmn("inclusive_gateway.bpmn")
+

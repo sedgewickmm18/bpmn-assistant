@@ -116,6 +116,7 @@ The application currently supports a subset of BPMN elements:
 ### Gateways
 * Exclusive gateway
 * Parallel gateway
+* Inclusive gateway
 
 ### Events
 **Start events**

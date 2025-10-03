@@ -25,7 +25,7 @@ class BpmnJsonGenerator:
         """
         Create the JSON representation of the process from the BPMN XML
         Constraints:
-            - Supported elements: task, userTask, serviceTask, sendTask, receiveTask, businessRuleTask, manualTask, scriptTask, startEvent, endEvent, intermediateThrowEvent, intermediateCatchEvent, exclusiveGateway, parallelGateway
+            - Supported elements: task, userTask, serviceTask, sendTask, receiveTask, businessRuleTask, manualTask, scriptTask, startEvent, endEvent, intermediateThrowEvent, intermediateCatchEvent, exclusiveGateway, inclusiveGateway, parallelGateway
             - Supported event definitions: timerEventDefinition, messageEventDefinition
             - The process must have only one start event
             - The process must not contain pools or lanes
@@ -122,6 +122,61 @@ class BpmnJsonGenerator:
                     self._build_structure_recursive(next_element, stop_at, visited)
                 )
 
+        elif current_element["type"] == BPMNElementType.INCLUSIVE_GATEWAY.value:
+            gateway = current_element.copy()
+            gateway["branches"] = []
+            gateway["has_join"] = False
+
+            common_branch_endpoint = self._find_common_branch_endpoint(current_id)
+            next_element = None
+
+            # If the common endpoint is an inclusive gateway, it means this gateway has a join
+            if common_branch_endpoint and self._is_inclusive_gateway(
+                common_branch_endpoint
+            ):
+                gateway["has_join"] = True
+
+                # Retrieve outgoing flows to determine the next element after the join
+                join_outgoing_flows = self._get_outgoing_flows(common_branch_endpoint)
+
+                # Validate that the join gateway has exactly one outgoing flow
+                if len(join_outgoing_flows) != 1:
+                    raise ValueError(
+                        "Join gateway should have exactly one outgoing flow"
+                    )
+
+                next_element = join_outgoing_flows[0]["target"]
+            else:
+                next_element = common_branch_endpoint
+
+            # Get the default flow ID if present
+            default_flow_id = gateway.get("default_flow")
+
+            # Build the branches of the inclusive gateway
+            for flow in outgoing_flows:
+                branch_path = self._build_structure_recursive(
+                    flow["target"],
+                    stop_at=common_branch_endpoint,
+                    visited=visited,
+                )
+
+                branch = self._build_ig_branch(
+                    branch_path, common_branch_endpoint, flow, default_flow_id
+                )
+
+                gateway["branches"].append(branch)
+
+            # Remove default_flow from gateway as it's stored in branches
+            gateway.pop("default_flow", None)
+
+            result = [gateway]
+
+            # Continue building the structure from the element after the gateway
+            if next_element:
+                result.extend(
+                    self._build_structure_recursive(next_element, stop_at, visited)
+                )
+
         elif current_element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
             gateway = current_element.copy()
             gateway["branches"] = []
@@ -158,6 +213,122 @@ class BpmnJsonGenerator:
             result.extend(self._build_structure_recursive(next_id, stop_at, visited))
 
         return result
+
+    def _build_ig_branch(
+        self,
+        branch_path: list[dict[str, Any]],
+        common_branch_endpoint: Optional[str],
+        flow: dict[str, str],
+        default_flow_id: Optional[str],
+    ) -> dict[str, Any]:
+        """
+        Build the branch structure for an inclusive gateway.
+        Args:
+            branch_path: The structure of the branch.
+            common_branch_endpoint: The ID of the common endpoint for the branches of the gateway.
+            flow: The flow object of the branch.
+            default_flow_id: The ID of the default flow (if any).
+        Returns:
+            The branch structure ("condition", "path", "next", "is_default").
+        """
+        is_default = flow["id"] == default_flow_id
+
+        branch = {
+            "path": branch_path,
+            "is_default": is_default,
+        }
+
+        # Only add condition if not default
+        if not is_default:
+            branch["condition"] = flow["condition"]
+
+        if not branch_path:
+            if flow["target"] != common_branch_endpoint:
+                branch["next"] = flow["target"]
+        else:
+            last_element = branch_path[-1]
+            last_element_outgoing_flows = self._get_outgoing_flows(last_element["id"])
+
+            if last_element["type"] == BPMNElementType.INCLUSIVE_GATEWAY.value:
+                if not last_element["has_join"]:
+                    # We need to add 'next' to each of the branches
+                    for sub_branch in last_element["branches"]:
+                        sub_flow = next(
+                            (flow for flow in last_element_outgoing_flows
+                             if flow["condition"] == sub_branch.get("condition")),
+                            None
+                        )
+                        if sub_flow:
+                            sub_default_flow_id = last_element.get("default_flow")
+                            sub_branch_result = self._build_ig_branch(
+                                sub_branch["path"], common_branch_endpoint, sub_flow, sub_default_flow_id
+                            )
+                            sub_branch.update(sub_branch_result)
+                else:
+                    join_id = self._find_common_branch_endpoint(last_element["id"])
+
+                    if join_id is None:
+                        raise ValueError("Inclusive gateway should have a corresponding join gateway")
+
+                    join_outgoing_flows = self._get_outgoing_flows(join_id)
+
+                    if len(join_outgoing_flows) != 1:
+                        raise ValueError("Join gateway should have one outgoing flow")
+
+                    join_target = join_outgoing_flows[0]["target"]
+                    if join_target != common_branch_endpoint:
+                        branch["next"] = join_target
+
+            elif last_element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
+                if not last_element["has_join"]:
+                    # We need to add 'next' to each of the branches
+                    for sub_branch in last_element["branches"]:
+                        sub_flow = next(
+                            flow
+                            for flow in last_element_outgoing_flows
+                            if flow["condition"] == sub_branch["condition"]
+                        )
+                        sub_branch_result = self._build_eg_branch(
+                            sub_branch["path"], common_branch_endpoint, sub_flow
+                        )
+                        sub_branch.update(sub_branch_result)
+                else:
+                    join_id = self._find_common_branch_endpoint(last_element["id"])
+
+                    if join_id is None:
+                        raise ValueError("Exclusive gateway should have a corresponding join gateway")
+
+                    join_outgoing_flows = self._get_outgoing_flows(join_id)
+
+                    if len(join_outgoing_flows) != 1:
+                        raise ValueError("Join gateway should have one outgoing flow")
+
+                    join_target = join_outgoing_flows[0]["target"]
+                    if join_target != common_branch_endpoint:
+                        branch["next"] = join_target
+
+            elif last_element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
+                join_id = self._find_common_branch_endpoint(last_element["id"])
+
+                if join_id is None:
+                    raise ValueError("Parallel gateway should have a corresponding join gateway")
+
+                join_outgoing_flows = self._get_outgoing_flows(join_id)
+
+                if len(join_outgoing_flows) != 1:
+                    raise ValueError("Join gateway should have one outgoing flow")
+
+                join_target = join_outgoing_flows[0]["target"]
+                if join_target != common_branch_endpoint:
+                    branch["next"] = join_target
+
+            elif (
+                len(last_element_outgoing_flows) == 1
+                and last_element_outgoing_flows[0]["target"] != common_branch_endpoint
+            ):
+                branch["next"] = last_element_outgoing_flows[0]["target"]
+
+        return branch
 
     def _build_eg_branch(
         self,
@@ -247,6 +418,11 @@ class BpmnJsonGenerator:
             self.elements[gateway_id]["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value
         )
 
+    def _is_inclusive_gateway(self, gateway_id: str) -> bool:
+        return (
+            self.elements[gateway_id]["type"] == BPMNElementType.INCLUSIVE_GATEWAY.value
+        )
+
     def _get_outgoing_flows(self, element_id: str) -> list[dict[str, str]]:
         return [flow for flow in self.flows.values() if flow["source"] == element_id]
 
@@ -315,6 +491,7 @@ class BpmnJsonGenerator:
             BPMNElementType.MANUAL_TASK.value,
             BPMNElementType.SCRIPT_TASK.value,
             BPMNElementType.EXCLUSIVE_GATEWAY.value,
+            BPMNElementType.INCLUSIVE_GATEWAY.value,
             BPMNElementType.START_EVENT.value,
             BPMNElementType.END_EVENT.value,
             BPMNElementType.INTERMEDIATE_THROW_EVENT.value,
@@ -334,6 +511,12 @@ class BpmnJsonGenerator:
                     name = elem.get("name")
                     if name:  # Only add label if name exists and is not empty
                         self.elements[elem_id]["label"] = name
+
+                # Store default flow for inclusive/exclusive gateways
+                if tag in [BPMNElementType.INCLUSIVE_GATEWAY.value, BPMNElementType.EXCLUSIVE_GATEWAY.value]:
+                    default_flow = elem.get("default")
+                    if default_flow:
+                        self.elements[elem_id]["default_flow"] = default_flow
 
                 # Check for event definitions (timerEventDefinition, messageEventDefinition, etc.)
                 for child in elem:
