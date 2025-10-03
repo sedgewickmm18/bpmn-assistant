@@ -143,4 +143,4 @@ The application currently supports a subset of BPMN elements:
 
 ## Contact
 
-If you have any questions or feedback, please open an issue on this GitHub repository.
+If you have any questions or feedback, please open an issue on this GitHub repository or [contact me](https://jtlicardo.com/).
