@@ -6,6 +6,8 @@ Based on this message history, determine whether the last user message indicates
 1. Make a modification to the process or create a new process.
 2. Ask for information or make conversation.
 
+IMPORTANT: If a BPMN process already exists in the conversation (visible in the message history), and the user gives a short imperative command or instruction (like "Add X", "Remove Y", "Change Z", etc.), this should be interpreted as a MODIFICATION REQUEST (intent: "modify"), NOT as a request for conversation.
+
 Example messages where the user wants to make a modification or create a new process:
 - a literal description of the process
 - "Create this process: [description of the process]"
