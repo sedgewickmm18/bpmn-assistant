@@ -9,7 +9,7 @@ LLM-powered creation, editing, and interpretation of Business Process Model and 
 
 ![Screenshot](assets/screenshot_1.png)
 
-<video src="assets/vision_demo.mp4" controls width="640"></video>
+https://github.com/user-attachments/assets/2f17bd99-f6fb-47a2-b33e-2190c3a834e2
 
 ## Quickstart
 
