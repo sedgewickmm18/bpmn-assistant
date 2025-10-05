@@ -3,7 +3,11 @@ from typing import Any, Generator, Optional
 from bpmn_assistant.core import MessageItem
 from bpmn_assistant.core.enums import OutputMode
 from bpmn_assistant.prompts import PromptTemplateProcessor
-from bpmn_assistant.utils import get_llm_facade, message_history_to_string
+from bpmn_assistant.utils import (
+    get_llm_facade,
+    get_supported_bpmn_elements,
+    message_history_to_string,
+)
 
 
 class ConversationalService:
@@ -24,7 +28,10 @@ class ConversationalService:
         Returns:
             Generator: A generator that yields the response
         """
-        template_vars = {"message_history": message_history_to_string(message_history)}
+        template_vars = {
+            "message_history": message_history_to_string(message_history),
+            "supported_elements": get_supported_bpmn_elements(),
+        }
 
         if process:
             template_vars["process"] = str(process)
@@ -50,6 +57,7 @@ class ConversationalService:
             "make_final_comment.jinja2",
             message_history=message_history_to_string(message_history),
             process=str(process),
+            supported_elements=get_supported_bpmn_elements(),
         )
 
         yield from self.llm_facade.stream(prompt, max_tokens=500, temperature=0.5)

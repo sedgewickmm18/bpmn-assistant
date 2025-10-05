@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from bpmn_assistant.core import LLMFacade, MessageItem
 from bpmn_assistant.core.enums import (
     AnthropicModels,
+    BPMNElementType,
+    EventDefinitionType,
     FireworksAIModels,
     GoogleModels,
     OpenAIModels,
@@ -106,3 +108,47 @@ def message_history_to_string(message_history: list[MessageItem]) -> str:
     return "\n".join(
         f"{message.role.capitalize()}: {message.content}" for message in message_history
     )
+
+
+def get_supported_bpmn_elements() -> str:
+    """
+    Generate a human-readable list of supported BPMN elements.
+    Returns:
+        str: A formatted string describing all supported BPMN elements
+    """
+    # Group elements by category
+    tasks = []
+    gateways = []
+    events = []
+
+    for element in BPMNElementType:
+        name = element.value
+        # Convert camelCase to Title Case with spaces
+        readable_name = ''.join([' ' + c if c.isupper() else c for c in name]).strip().title()
+
+        if 'task' in name.lower():
+            tasks.append(readable_name)
+        elif 'gateway' in name.lower():
+            gateways.append(readable_name)
+        elif 'event' in name.lower():
+            events.append(readable_name)
+
+    # Build the description
+    parts = []
+
+    if events:
+        parts.append(f"Events: {', '.join(events)}")
+    if tasks:
+        parts.append(f"Tasks: {', '.join(tasks)}")
+    if gateways:
+        parts.append(f"Gateways: {', '.join(gateways)}")
+
+    # Add event definitions
+    event_defs = [ed.value.replace('EventDefinition', ' Event').title()
+                  for ed in EventDefinitionType if ed.value is not None]
+    if event_defs:
+        parts.append(f"Event Definitions: {', '.join(event_defs)}")
+
+    parts.append("Sequence Flows")
+
+    return "; ".join(parts)

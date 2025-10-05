@@ -31,15 +31,3 @@ class PromptTemplateProcessor:
         """
         template = self.env.get_template(template_name)
         return template.render(**kwargs)
-
-
-if __name__ == "__main__":
-    processor = PromptTemplateProcessor()
-
-    variables = {
-        "message_history": "This should be the message history!",
-        # "process": "This should be the BPMN process, which is optional!",
-    }
-
-    prompt = processor.render_template("respond_to_query.jinja2", **variables)
-    print(prompt)
