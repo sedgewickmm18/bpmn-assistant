@@ -6,13 +6,24 @@ from typing_extensions import Literal
 TaskType = Literal["task", "userTask", "serviceTask", "sendTask", "receiveTask", "businessRuleTask", "manualTask", "scriptTask"]
 
 
+class MessageImage(BaseModel):
+    """
+    Represents an image attached to a message.
+    """
+
+    preview: str  # Base64 encoded image data URL
+    name: str  # Original filename
+
+
 class MessageItem(BaseModel):
     """
     A message item used for LLM API communication.
+    Supports text content and optional images for vision-enabled models.
     """
 
     role: str
     content: str
+    images: Optional[List[MessageImage]] = None
 
 
 class BPMNTask(BaseModel):

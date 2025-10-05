@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from bpmn_assistant.core import LLMFacade, MessageItem
+from bpmn_assistant.core import LLMFacade, MessageItem, MessageImage
 from bpmn_assistant.core.enums import (
     AnthropicModels,
     BPMNElementType,
@@ -108,6 +108,20 @@ def message_history_to_string(message_history: list[MessageItem]) -> str:
     return "\n".join(
         f"{message.role.capitalize()}: {message.content}" for message in message_history
     )
+
+
+def extract_images_from_message_history(
+    message_history: list[MessageItem],
+) -> list[MessageImage]:
+    """
+    Extract all images from all messages in the message history.
+    Returns a flat list of all images.
+    """
+    images = []
+    for message in message_history:
+        if message.images:
+            images.extend(message.images)
+    return images
 
 
 def get_supported_bpmn_elements() -> str:

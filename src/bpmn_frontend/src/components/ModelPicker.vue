@@ -47,6 +47,12 @@ const Providers = Object.freeze({
 
 export default {
   name: 'ModelPicker',
+  props: {
+    hasImages: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       selectedModel: '',
@@ -99,9 +105,18 @@ export default {
   },
   computed: {
     availableModels() {
-      return this.models.filter((model) =>
+      let filteredModels = this.models.filter((model) =>
         this.availableProviders.includes(model.provider)
       );
+
+      // If images are uploaded, only show OpenAI models
+      if (this.hasImages) {
+        filteredModels = filteredModels.filter(
+          (model) => model.provider === Providers.OPENAI
+        );
+      }
+
+      return filteredModels;
     },
     showReasoningModelWarning() {
       return (

@@ -7,6 +7,7 @@ from bpmn_assistant.config import logger
 from bpmn_assistant.core.enums import MessageRole, OutputMode, Provider
 from bpmn_assistant.core.llm_provider import LLMProvider
 from bpmn_assistant.core.provider_factory import ProviderFactory
+from bpmn_assistant.core.schemas import MessageImage
 
 
 class LLMFacade:
@@ -42,13 +43,31 @@ class LLMFacade:
         max_tokens: int = 2000,
         temperature: float = 0.3,
         structured_output: BaseModel | None = None,
+        images: list[MessageImage] | None = None,
     ) -> str | dict[str, Any]:
         """
         Call the LLM model with the given prompt.
+        Args:
+            prompt: The text prompt
+            max_tokens: Maximum tokens in response
+            temperature: Sampling temperature
+            structured_output: Optional structured output schema
+            images: Optional list of images to attach to the user message
         """
         logger.info(f"Calling LLM: {self.model}")
 
-        self.messages.append({"role": MessageRole.USER.value, "content": prompt})
+        # If images are provided, use vision format (content array)
+        if images and len(images) > 0:
+            content = [{"type": "text", "text": prompt}]
+            for image in images:
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": image.preview},
+                })
+            self.messages.append({"role": MessageRole.USER.value, "content": content})
+        else:
+            # Standard text-only format
+            self.messages.append({"role": MessageRole.USER.value, "content": prompt})
 
         response = self.provider.call(
             self.model,
@@ -68,13 +87,34 @@ class LLMFacade:
         return response
 
     def stream(
-        self, prompt: str, max_tokens: int = 2000, temperature: float = 0.3
+        self,
+        prompt: str,
+        max_tokens: int = 2000,
+        temperature: float = 0.3,
+        images: list[MessageImage] | None = None,
     ) -> Generator[str, None, None]:
         """
-        Call the LLM model with the given prompt and stream the response.
+        Call the LLM model and stream the response.
+
+        Args:
+            prompt: The text prompt
+            max_tokens: Maximum tokens in response
+            temperature: Sampling temperature
+            images: Optional list of images to attach to the user message
         """
         logger.info(f"Calling LLM (streaming): {self.model}")
 
-        self.messages.append({"role": MessageRole.USER.value, "content": prompt})
+        # If images are provided, use vision format (content array)
+        if images and len(images) > 0:
+            content = [{"type": "text", "text": prompt}]
+            for image in images:
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": image.preview},
+                })
+            self.messages.append({"role": MessageRole.USER.value, "content": content})
+        else:
+            # Standard text-only format
+            self.messages.append({"role": MessageRole.USER.value, "content": prompt})
 
         return self.provider.stream(self.model, self.messages, max_tokens, temperature)

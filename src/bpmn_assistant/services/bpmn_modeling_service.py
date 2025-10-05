@@ -2,7 +2,7 @@ import json
 import traceback
 
 from bpmn_assistant.config import logger
-from bpmn_assistant.core import LLMFacade, MessageItem
+from bpmn_assistant.core import LLMFacade, MessageItem, MessageImage
 from bpmn_assistant.prompts import PromptTemplateProcessor
 from bpmn_assistant.services.process_editing import (
     BpmnEditingService,
@@ -25,6 +25,7 @@ class BpmnModelingService:
         self,
         llm_facade: LLMFacade,
         message_history: list[MessageItem],
+        images: list[MessageImage] | None = None,
         max_retries: int = 3,
     ) -> list:
         """
@@ -32,6 +33,7 @@ class BpmnModelingService:
         Args:
             llm_facade: The LLMFacade object.
             message_history: The message history.
+            images: Optional list of images to attach to the request.
             max_retries: The maximum number of retries in case of failure.
         Returns:
             list: The BPMN process.
@@ -47,7 +49,7 @@ class BpmnModelingService:
         while attempts < max_retries:
             attempts += 1
             try:
-                response = llm_facade.call(prompt, max_tokens=3000)
+                response = llm_facade.call(prompt, max_tokens=3000, images=images)
                 logger.debug(f"LLM response:\n{json.dumps(response, indent=2)}")
                 process = response["process"]
                 validate_bpmn(process)
@@ -72,9 +74,10 @@ class BpmnModelingService:
         text_llm_facade: LLMFacade,
         process: list[dict],
         message_history: list[MessageItem],
+        images: list[MessageImage] | None = None,
     ) -> list:
         change_request = define_change_request(
-            text_llm_facade, process, message_history
+            text_llm_facade, process, message_history, images=images
         )
 
         bpmn_editor_service = BpmnEditingService(llm_facade, process, change_request)

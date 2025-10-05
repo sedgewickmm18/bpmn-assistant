@@ -5,6 +5,16 @@
         <div class="message-role">
           <b>{{ roleDisplay }}</b>
         </div>
+        <!-- Display images above the text content -->
+        <div v-if="images && images.length > 0" class="message-images">
+          <img
+            v-for="(image, index) in images"
+            :key="index"
+            :src="image.preview"
+            :alt="image.name"
+            class="message-image"
+          />
+        </div>
         <div class="message-content" v-html="formattedContent"></div>
       </div>
     </div>
@@ -16,6 +26,10 @@ export default {
   props: {
     role: String,
     content: String,
+    images: {
+      type: Array,
+      default: () => [],
+    },
   },
   computed: {
     roleDisplay() {
@@ -115,5 +129,19 @@ export default {
   content: '';
   display: block;
   margin-bottom: 0.2em;
+}
+
+.message-images {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.message-image {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 </style>

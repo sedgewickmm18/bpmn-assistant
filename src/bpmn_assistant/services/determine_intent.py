@@ -3,7 +3,7 @@ import traceback
 from pydantic import BaseModel
 
 from bpmn_assistant.config import logger
-from bpmn_assistant.core import LLMFacade, MessageItem
+from bpmn_assistant.core import LLMFacade, MessageItem, MessageImage
 from bpmn_assistant.prompts import PromptTemplateProcessor
 from bpmn_assistant.utils import message_history_to_string
 
@@ -30,6 +30,7 @@ class DetermineIntentResponse(BaseModel):
 def determine_intent(
     llm_facade: LLMFacade,
     message_history: list[MessageItem],
+    images: list[MessageImage] | None = None,
     max_retries: int = 3,
 ) -> dict:
     """
@@ -38,6 +39,7 @@ def determine_intent(
     Args:
         llm_facade: The LLM facade
         message_history: The message history
+        images: Optional list of images to attach to the request
         max_retries: The maximum number of retries in case of failure
     Returns:
         dict: The response containing the intent
@@ -61,6 +63,7 @@ def determine_intent(
                 max_tokens=500,
                 temperature=0.3,
                 structured_output=DetermineIntentResponse,
+                images=images,
             )
             _validate_determine_intent(json_object)
             logger.info(f"Intent: {json_object}")

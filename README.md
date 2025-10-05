@@ -3,9 +3,13 @@
 [![CI](https://github.com/jtlicardo/bpmn-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/jtlicardo/bpmn-assistant/actions/workflows/ci.yml)
 
 
-![Logo](images/bpmn_assistant_logo.png)
+![Logo](assets/bpmn_assistant_logo.png)
 
 LLM-powered creation, editing, and interpretation of Business Process Model and Notation (BPMN) diagrams.
+
+![Screenshot](assets/screenshot_1.png)
+
+<video src="assets/vision_demo.mp4" controls width="640"></video>
 
 ## Quickstart
 
@@ -57,8 +61,6 @@ docker-compose up --build
 
 5. Open your browser and go to `http://localhost:8080`
 
-![Screenshot](images/screenshot_1.png)
-
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
@@ -97,11 +99,12 @@ Note: You can use any combination of the API keys above, but at least one is req
 
 ## Core features
 
-1. Diagram creation - Generates BPMN diagrams based on text descriptions.
-2. Diagram editing - Modifies BPMN diagrams based on user input.
-3. Diagram interpretation - Provides text descriptions of BPMN diagrams.
-4. Drag-and-drop functionality - Users can drag and drop BPMN files (containing only supported elements) into the
+1. **Diagram creation** - Generates BPMN diagrams based on text descriptions.
+2. **Diagram editing** - Modifies BPMN diagrams based on user input.
+3. **Diagram interpretation** - Provides text descriptions of BPMN diagrams.
+4. **Drag-and-drop functionality** - Users can drag and drop BPMN files (containing only supported elements) into the
    editor, then ask the LLM to edit or explain the process.
+5. **Vision support** - Upload images (flowcharts, sketches, diagrams) to create or modify BPMN processes. Currently available for OpenAI models only.
 
 ## Supported elements
 

@@ -23,6 +23,27 @@ class LiteLLMProvider(LLMProvider):
         os.environ["OPENAI_API_KEY"] = api_key
         os.environ["GEMINI_API_KEY"] = api_key
 
+    def _is_openai_model(self, model: str) -> bool:
+        """Check if the given model is an OpenAI model."""
+        return model in [m.value for m in OpenAIModels]
+
+    def _validate_vision_support(self, model: str, messages: list[dict[str, Any]]) -> None:
+        """
+        Validate that only vision-supported models receive image content.
+        Raises ValueError if images are sent to non-OpenAI models.
+        """
+        has_images = any(
+            isinstance(msg.get("content"), list)
+            and any(item.get("type") == "image_url" for item in msg.get("content", []))
+            for msg in messages
+        )
+
+        if has_images and not self._is_openai_model(model):
+            raise ValueError(
+                f"Vision input is only supported for OpenAI models. "
+                f"Model '{model}' does not support image inputs."
+            )
+
     def call(
         self,
         model: str,
@@ -31,6 +52,8 @@ class LiteLLMProvider(LLMProvider):
         temperature: float,
         structured_output: BaseModel | None = None,
     ) -> str | dict[str, Any]:
+        self._validate_vision_support(model, messages)
+
         params: dict[str, Any] = {
             "model": model,
             "messages": messages,
@@ -82,6 +105,8 @@ class LiteLLMProvider(LLMProvider):
         max_tokens: int,
         temperature: float,
     ) -> Generator[str, None, None]:
+        self._validate_vision_support(model, messages)
+
         # GPT-5 models only support temperature=1
         if model in [OpenAIModels.GPT_5.value, OpenAIModels.GPT_5_MINI.value]:
             temperature = 1

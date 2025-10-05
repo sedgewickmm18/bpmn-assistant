@@ -21,6 +21,7 @@ from bpmn_assistant.utils import (
     replace_reasoning_model,
     get_available_providers,
     get_llm_facade,
+    extract_images_from_message_history,
 )
 
 app = FastAPI()
@@ -66,7 +67,8 @@ async def _determine_intent(request: DetermineIntentRequest) -> JSONResponse:
     """
     model = replace_reasoning_model(request.model)
     llm_facade = get_llm_facade(model)
-    intent = determine_intent(llm_facade, request.message_history)
+    images = extract_images_from_message_history(request.message_history)
+    intent = determine_intent(llm_facade, request.message_history, images=images)
     return JSONResponse(content=intent)
 
 
@@ -79,15 +81,17 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     """
     llm_facade = get_llm_facade(request.model)
     text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT)
+    images = extract_images_from_message_history(request.message_history)
 
     if request.process:
         process = bpmn_modeling_service.edit_bpmn(
-            llm_facade, text_llm_facade, request.process, request.message_history
+            llm_facade, text_llm_facade, request.process, request.message_history, images=images
         )
     else:
         process = bpmn_modeling_service.create_bpmn(
             llm_facade,
             request.message_history,
+            images=images,
         )
 
     bpmn_xml_string = bpmn_xml_generator.create_bpmn_xml(process)
@@ -98,14 +102,15 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
 async def _talk(request: ConversationalRequest) -> StreamingResponse:
     model = replace_reasoning_model(request.model)
     conversational_service = ConversationalService(model)
+    images = extract_images_from_message_history(request.message_history)
 
     if request.needs_to_be_final_comment:
         response_generator = conversational_service.make_final_comment(
-            request.message_history, request.process
+            request.message_history, request.process, images=images
         )
     else:
         response_generator = conversational_service.respond_to_query(
-            request.message_history, request.process
+            request.message_history, request.process, images=images
         )
 
     return StreamingResponse(response_generator)

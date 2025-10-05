@@ -47,7 +47,10 @@
               </v-btn>
             </template>
           </v-tooltip>
-          <ModelPicker @select-model="setSelectedModel" />
+          <ModelPicker
+            @select-model="setSelectedModel"
+            :has-images="hasImages"
+          />
         </div>
       </div>
     </div>
@@ -59,6 +62,7 @@
           :key="index"
           :role="message.role"
           :content="message.content"
+          :images="message.images || []"
         />
 
         <LoadingIndicator v-if="isLoading" />
@@ -81,38 +85,115 @@
       />
     </div>
 
-    <div class="input-area">
+    <div
+      class="input-area"
+      :class="{ 'drag-over': isDragging }"
+      @dragover="handleDragOver"
+      @dragenter="handleDragEnter"
+      @dragleave="handleDragLeave"
+      @drop="handleDrop"
+    >
       <div class="input-wrapper">
-        <v-textarea
-          label="Message BPMN Assistant..."
-          v-model="currentInput"
-          :disabled="isLoading"
-          :counter="10000"
-          rows="4"
-          @keydown.enter.prevent="handleKeyDown"
-          hide-details
-          class="input-textarea"
-          density="comfortable"
-          variant="outlined"
-          bg-color="white"
-        >
-        </v-textarea>
-        <v-btn
-          @click="handleMessageSubmit"
-          :disabled="isLoading || !currentInput.trim()"
-          color="primary"
-          class="send-button"
-          icon="mdi-send"
-          variant="text"
-          size="small"
-        >
-        </v-btn>
+        <!-- Image previews -->
+        <div v-if="selectedImages.length > 0" class="image-preview-container">
+          <div
+            v-for="(image, index) in selectedImages"
+            :key="index"
+            class="image-preview-item"
+          >
+            <img :src="image.preview" :alt="image.name" class="preview-image" />
+            <v-btn
+              @click="removeImage(index)"
+              icon="mdi-close"
+              size="x-small"
+              class="remove-image-btn"
+              color="error"
+              variant="text"
+            >
+            </v-btn>
+          </div>
+        </div>
+        <div class="input-controls">
+          <input
+            type="file"
+            ref="fileInput"
+            @change="handleFileSelect"
+            accept="image/*"
+            multiple
+            style="display: none"
+          />
+          <v-tooltip
+            :text="
+              !isOpenAIModel
+                ? 'Image uploads are only available for OpenAI models'
+                : 'Upload image'
+            "
+            location="top"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                @click="triggerFileInput"
+                :disabled="isLoading || !isOpenAIModel"
+                icon="mdi-image-plus"
+                variant="text"
+                size="small"
+                class="attach-button"
+                color="grey-darken-1"
+              >
+              </v-btn>
+            </template>
+          </v-tooltip>
+          <v-textarea
+            label="Message BPMN Assistant..."
+            v-model="currentInput"
+            :disabled="isLoading"
+            :counter="10000"
+            rows="4"
+            @keydown.enter.prevent="handleKeyDown"
+            @paste="handlePaste"
+            hide-details
+            class="input-textarea"
+            density="comfortable"
+            variant="outlined"
+            bg-color="white"
+          >
+          </v-textarea>
+          <v-btn
+            @click="handleMessageSubmit"
+            :disabled="isLoading || (!currentInput.trim() && selectedImages.length === 0)"
+            color="primary"
+            class="send-button"
+            icon="mdi-send"
+            variant="text"
+            size="small"
+          >
+          </v-btn>
+        </div>
       </div>
     </div>
 
     <p class="text-caption text-center mt-2 mb-2">
       This application uses LLMs and may produce varying results.
     </p>
+
+    <v-snackbar
+      v-model="showImageLimitSnackbar"
+      :timeout="3000"
+      color="warning"
+      location="top"
+    >
+      Only 3 images per message are allowed
+      <template v-slot:actions>
+        <v-btn
+          color="white"
+          variant="text"
+          @click="showImageLimitSnackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
@@ -144,13 +225,31 @@ export default {
       currentInput: '',
       selectedModel: '',
       hasError: false,
+      selectedImages: [],
+      isDragging: false,
+      showImageLimitSnackbar: false,
+      conversationHasImages: false,
     };
+  },
+  computed: {
+    isOpenAIModel() {
+      return (
+        this.selectedModel === 'gpt-5' ||
+        this.selectedModel === 'gpt-5-mini' ||
+        this.selectedModel === 'gpt-4.1'
+      );
+    },
+    hasImages() {
+      return this.selectedImages.length > 0 || this.conversationHasImages;
+    },
   },
   methods: {
     reset() {
       this.messages = [];
       this.currentInput = '';
       this.hasError = false;
+      this.selectedImages = [];
+      this.conversationHasImages = false;
       this.onBpmnJsonReceived(null);
       this.onBpmnXmlReceived('');
     },
@@ -196,8 +295,24 @@ export default {
       // Clear any previous errors
       this.hasError = false;
 
-      this.messages.push({ content: this.currentInput, role: 'user' });
+      // Create the message object with text and images
+      const message = {
+        content: this.currentInput,
+        role: 'user',
+        images: this.selectedImages.map((img) => ({
+          preview: img.preview,
+          name: img.name,
+        })),
+      };
+
+      // Track if conversation has images
+      if (this.selectedImages.length > 0) {
+        this.conversationHasImages = true;
+      }
+
+      this.messages.push(message);
       this.currentInput = '';
+      this.selectedImages = []; // Clear selected images after sending
 
       this.$nextTick(() => {
         this.scrollToBottom();
@@ -360,6 +475,87 @@ export default {
       const messageContainer = this.$el.querySelector('.message-container');
       messageContainer.scrollTop = messageContainer.scrollHeight;
     },
+    handleFileSelect(event) {
+      const files = Array.from(event.target.files);
+      this.processFiles(files);
+    },
+    processFiles(files) {
+      const imageFiles = files.filter((file) =>
+        file.type.startsWith('image/')
+      );
+
+      // Limit to max 3 images
+      const remainingSlots = 3 - this.selectedImages.length;
+
+      if (imageFiles.length > remainingSlots) {
+        this.showImageLimitSnackbar = true;
+      }
+
+      const filesToAdd = imageFiles.slice(0, remainingSlots);
+
+      filesToAdd.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.selectedImages.push({
+            file: file,
+            preview: e.target.result,
+            name: file.name,
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+    removeImage(index) {
+      this.selectedImages.splice(index, 1);
+    },
+    triggerFileInput() {
+      this.$refs.fileInput.click();
+    },
+    handleDragOver(event) {
+      event.preventDefault();
+      this.isDragging = true;
+    },
+    handleDragEnter(event) {
+      event.preventDefault();
+      this.isDragging = true;
+    },
+    handleDragLeave(event) {
+      event.preventDefault();
+      // Only set isDragging to false if we're leaving the input-area entirely
+      if (event.target.classList.contains('input-area')) {
+        this.isDragging = false;
+      }
+    },
+    handleDrop(event) {
+      event.preventDefault();
+      this.isDragging = false;
+
+      if (!this.isOpenAIModel) {
+        return;
+      }
+
+      const files = Array.from(event.dataTransfer.files);
+      this.processFiles(files);
+    },
+    handlePaste(event) {
+      if (!this.isOpenAIModel) {
+        return;
+      }
+
+      const items = event.clipboardData?.items;
+      if (!items) return;
+
+      const imageItems = Array.from(items).filter((item) =>
+        item.type.startsWith('image/')
+      );
+
+      if (imageItems.length > 0) {
+        event.preventDefault(); // Prevent default paste behavior for images
+
+        const files = imageItems.map((item) => item.getAsFile()).filter(Boolean);
+        this.processFiles(files);
+      }
+    },
   },
 };
 </script>
@@ -404,8 +600,13 @@ export default {
 
 .input-wrapper {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   position: relative;
+}
+
+.input-controls {
+  display: flex;
+  align-items: flex-end;
 }
 
 .input-textarea {
@@ -419,5 +620,44 @@ export default {
   letter-spacing: 0.5px;
   background: linear-gradient(45deg, var(--v-primary-base), #666);
   margin-bottom: 0;
+}
+
+.input-area.drag-over {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.image-preview-container {
+  display: flex;
+  gap: 8px;
+  padding: 0 0 8px 0;
+  flex-wrap: wrap;
+  margin-left: 44px;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #e0e0e0;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.attach-button {
+  margin-right: 4px;
 }
 </style>
