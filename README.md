@@ -148,6 +148,10 @@ The application currently supports a subset of BPMN elements:
   version. Keep this in mind when interacting with the assistant after making manual changes.
 * Pools and lanes are not supported due to limitations in the [BPMN Auto Layout](https://github.com/bpmn-io/bpmn-auto-layout) library.
 
+## Paper
+
+[BPMN Assistant: An LLM-Based Approach to Business Process Modeling](https://arxiv.org/abs/2509.24592)
+
 ## Contact
 
 If you have any questions or feedback, please open an issue on this GitHub repository or [contact me](https://jtlicardo.com/).
