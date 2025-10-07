@@ -38,6 +38,12 @@ bpmn_modeling_service = BpmnModelingService()
 bpmn_xml_generator = BpmnXmlGenerator()
 
 
+@app.get("/")
+async def health_check():
+    """Health check endpoint for Render"""
+    return {"status": "ok"}
+
+
 @app.post("/bpmn_to_json")
 @handle_exceptions
 async def _bpmn_to_json(request: BpmnToJsonRequest) -> JSONResponse:
