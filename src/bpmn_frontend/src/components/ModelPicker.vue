@@ -119,7 +119,6 @@ export default {
         );
       }
 
-      console.log('[ModelPicker] Available models computed:', filteredModels.map(m => m.title));
       return filteredModels;
     },
     showReasoningModelWarning() {
@@ -137,28 +136,44 @@ export default {
     async fetchAvailableProviders() {
       try {
         const apiKeys = getApiKeys();
-        console.log('[ModelPicker] API keys from sessionStorage:', apiKeys);
+        const isProduction = window.location.hostname !== 'localhost';
 
-        const response = await fetch(
-          `${bpmnAssistantUrl}/available_providers`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ api_keys: apiKeys }),
+        if (isProduction) {
+          // Production mode: determine providers from user-entered keys only
+          this.availableProviders = [];
+          if (apiKeys.openai_api_key) {
+            this.availableProviders.push(Providers.OPENAI);
           }
-        );
+          if (apiKeys.anthropic_api_key) {
+            this.availableProviders.push(Providers.ANTHROPIC);
+          }
+          if (apiKeys.google_api_key) {
+            this.availableProviders.push(Providers.GOOGLE);
+          }
+          if (apiKeys.fireworks_api_key) {
+            this.availableProviders.push(Providers.FIREWORKS_AI);
+          }
+        } else {
+          // Local mode: check backend (which uses .env file)
+          const response = await fetch(
+            `${bpmnAssistantUrl}/available_providers`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ api_keys: apiKeys }),
+            }
+          );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          this.availableProviders = Object.keys(data).filter(
+            (provider) => data[provider]
+          );
         }
-
-        const data = await response.json();
-        console.log('[ModelPicker] Backend response:', data);
-
-        this.availableProviders = Object.keys(data).filter(
-          (provider) => data[provider]
-        );
-        console.log('[ModelPicker] Available providers after filter:', this.availableProviders);
 
         // Notify parent if no providers available
         const hasProviders = this.availableProviders.length > 0;
