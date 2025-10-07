@@ -66,22 +66,24 @@ def get_available_providers(api_keys: dict[str, str] | None = None) -> dict:
     Returns:
         dict: Dictionary with provider availability status
     """
-    load_dotenv(override=True)
-
     if api_keys is None:
         api_keys = {}
 
-    # Get keys from user input or environment variables
-    openai_api_key = api_keys.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
-    anthropic_api_key = api_keys.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
-    gemini_api_key = api_keys.get("google_api_key") or os.getenv("GEMINI_API_KEY")
-    fireworks_api_key = api_keys.get("fireworks_api_key") or os.getenv("FIREWORKS_AI_API_KEY")
-
-    # Check if keys are present and non-empty
-    openai_present = bool(openai_api_key)
-    anthropic_present = bool(anthropic_api_key)
-    google_present = bool(gemini_api_key)
-    fireworks_ai_present = bool(fireworks_api_key)
+    # If user provided any keys (BYOK mode), only check those
+    # Otherwise, check environment variables (local Docker mode)
+    if len(api_keys) > 0:
+        # BYOK mode - only check user-provided keys
+        openai_present = bool(api_keys.get("openai_api_key"))
+        anthropic_present = bool(api_keys.get("anthropic_api_key"))
+        google_present = bool(api_keys.get("google_api_key"))
+        fireworks_ai_present = bool(api_keys.get("fireworks_api_key"))
+    else:
+        # Local Docker mode - check environment variables
+        load_dotenv(override=True)
+        openai_present = bool(os.getenv("OPENAI_API_KEY"))
+        anthropic_present = bool(os.getenv("ANTHROPIC_API_KEY"))
+        google_present = bool(os.getenv("GEMINI_API_KEY"))
+        fireworks_ai_present = bool(os.getenv("FIREWORKS_AI_API_KEY"))
 
     return {
         "openai": openai_present,
