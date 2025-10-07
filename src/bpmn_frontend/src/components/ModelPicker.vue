@@ -119,6 +119,7 @@ export default {
         );
       }
 
+      console.log('[ModelPicker] Available models computed:', filteredModels.map(m => m.title));
       return filteredModels;
     },
     showReasoningModelWarning() {
@@ -136,6 +137,8 @@ export default {
     async fetchAvailableProviders() {
       try {
         const apiKeys = getApiKeys();
+        console.log('[ModelPicker] API keys from sessionStorage:', apiKeys);
+
         const response = await fetch(
           `${bpmnAssistantUrl}/available_providers`,
           {
@@ -150,10 +153,12 @@ export default {
         }
 
         const data = await response.json();
+        console.log('[ModelPicker] Backend response:', data);
 
         this.availableProviders = Object.keys(data).filter(
           (provider) => data[provider]
         );
+        console.log('[ModelPicker] Available providers after filter:', this.availableProviders);
 
         // Notify parent if no providers available
         const hasProviders = this.availableProviders.length > 0;
