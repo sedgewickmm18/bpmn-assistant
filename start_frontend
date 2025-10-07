@@ -1,7 +1,7 @@
 #!/bin/bash
 if test -e src/bpmn_frontend/vite.config.js; then
         cd src/bpmn_frontend
-        npm run dev
+        npm run dev #--host http://0.0.0.0
 else:
         print "Please start from the main directory"
 fi

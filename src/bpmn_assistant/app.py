@@ -89,6 +89,8 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
             llm_facade,
             request.message_history,
         )
+    print("TYPE: ", type(process))
+    print("CONTENT: ", process)
 
     bpmn_xml_string = bpmn_xml_generator.create_bpmn_xml(process)
     return JSONResponse(content={"bpmn_xml": bpmn_xml_string, "bpmn_json": process})

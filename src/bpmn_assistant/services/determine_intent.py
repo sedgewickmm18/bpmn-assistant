@@ -51,6 +51,11 @@ def determine_intent(
 
     attempts = 0
 
+    # TODO delete later
+    response = dict()
+    response['intent'] = 'modify'
+    return response
+
     while attempts < max_retries:
 
         attempts += 1
