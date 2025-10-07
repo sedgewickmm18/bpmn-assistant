@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from bpmn_assistant.api.requests import (
+    AvailableProvidersRequest,
     BpmnToJsonRequest,
     ConversationalRequest,
     DetermineIntentRequest,
@@ -55,13 +56,13 @@ async def _bpmn_to_json(request: BpmnToJsonRequest) -> JSONResponse:
     return JSONResponse(content=result)
 
 
-@app.get("/available_providers")
+@app.post("/available_providers")
 @handle_exceptions
-async def _available_providers() -> JSONResponse:
+async def _available_providers(request: AvailableProvidersRequest) -> JSONResponse:
     """
     Get the available LLM providers
     """
-    providers = get_available_providers()
+    providers = get_available_providers(api_keys=request.api_keys)
     return JSONResponse(content=providers)
 
 
@@ -72,7 +73,7 @@ async def _determine_intent(request: DetermineIntentRequest) -> JSONResponse:
     Determine the intent of the user query
     """
     model = replace_reasoning_model(request.model)
-    llm_facade = get_llm_facade(model)
+    llm_facade = get_llm_facade(model, api_keys=request.api_keys)
     images = extract_images_from_message_history(request.message_history)
     intent = determine_intent(llm_facade, request.message_history, images=images)
     return JSONResponse(content=intent)
@@ -85,8 +86,8 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     Modify the BPMN process based on the user query. If the request does not contain a BPMN JSON,
     then create a new BPMN process. Otherwise, edit the existing BPMN process.
     """
-    llm_facade = get_llm_facade(request.model)
-    text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT)
+    llm_facade = get_llm_facade(request.model, api_keys=request.api_keys)
+    text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT, api_keys=request.api_keys)
     images = extract_images_from_message_history(request.message_history)
 
     if request.process:
@@ -107,7 +108,7 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
 @app.post("/talk")
 async def _talk(request: ConversationalRequest) -> StreamingResponse:
     model = replace_reasoning_model(request.model)
-    conversational_service = ConversationalService(model)
+    conversational_service = ConversationalService(model, api_keys=request.api_keys)
     images = extract_images_from_message_history(request.message_history)
 
     if request.needs_to_be_final_comment:

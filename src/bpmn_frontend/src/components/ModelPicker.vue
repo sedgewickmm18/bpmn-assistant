@@ -25,6 +25,7 @@
 
 <script>
 import { bpmnAssistantUrl } from '../config';
+import { getApiKeys } from '../utils/apiKeys';
 
 const Models = Object.freeze({
   GPT_5: 'gpt-5',
@@ -134,11 +135,13 @@ export default {
     },
     async fetchAvailableProviders() {
       try {
+        const apiKeys = getApiKeys();
         const response = await fetch(
           `${bpmnAssistantUrl}/available_providers`,
           {
-            method: 'GET',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_keys: apiKeys }),
           }
         );
 
@@ -151,6 +154,10 @@ export default {
         this.availableProviders = Object.keys(data).filter(
           (provider) => data[provider]
         );
+
+        // Notify parent if no providers available
+        const hasProviders = this.availableProviders.length > 0;
+        this.$parent.setHasAvailableProviders(hasProviders);
 
         if (this.availableProviders.includes(Providers.OPENAI)) {
           this.onModelChange(Models.GPT_4_1);

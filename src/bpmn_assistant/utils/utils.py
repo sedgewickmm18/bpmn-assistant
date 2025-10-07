@@ -15,12 +15,13 @@ from bpmn_assistant.core.enums import (
 )
 
 
-def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON) -> LLMFacade:
+def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON, api_keys: dict[str, str] | None = None) -> LLMFacade:
     """
     Get the LLM facade based on the model type
     Args:
         model: The model to use
         output_mode: The output mode for the LLM response (JSON or text)
+        api_keys: Optional dictionary of API keys from user (takes precedence over env vars)
     Returns:
         LLMFacade: The LLM facade
     Raises:
@@ -28,17 +29,20 @@ def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON) -> LLM
     """
     load_dotenv(override=True)
 
+    if api_keys is None:
+        api_keys = {}
+
     if is_openai_model(model):
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = api_keys.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
         provider = Provider.OPENAI
     elif is_anthropic_model(model):
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = api_keys.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
         provider = Provider.ANTHROPIC
     elif is_google_model(model):
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = api_keys.get("google_api_key") or os.getenv("GEMINI_API_KEY")
         provider = Provider.GOOGLE
     elif is_fireworks_ai_model(model):
-        api_key = os.getenv("FIREWORKS_AI_API_KEY")
+        api_key = api_keys.get("fireworks_api_key") or os.getenv("FIREWORKS_AI_API_KEY")
         provider = Provider.FIREWORKS_AI
     else:
         raise Exception("Invalid model")
@@ -54,17 +58,30 @@ def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON) -> LLM
     )
 
 
-def get_available_providers() -> dict:
+def get_available_providers(api_keys: dict[str, str] | None = None) -> dict:
+    """
+    Get available providers from user-provided keys or environment variables.
+    Args:
+        api_keys: Optional dictionary of API keys from user (takes precedence over env vars)
+    Returns:
+        dict: Dictionary with provider availability status
+    """
     load_dotenv(override=True)
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    fireworks_api_key = os.getenv("FIREWORKS_AI_API_KEY")
 
-    openai_present = openai_api_key is not None and len(openai_api_key) > 0
-    anthropic_present = anthropic_api_key is not None and len(anthropic_api_key) > 0
-    google_present = gemini_api_key is not None and len(gemini_api_key) > 0
-    fireworks_ai_present = fireworks_api_key is not None and len(fireworks_api_key) > 0
+    if api_keys is None:
+        api_keys = {}
+
+    # Get keys from user input or environment variables
+    openai_api_key = api_keys.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
+    anthropic_api_key = api_keys.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
+    gemini_api_key = api_keys.get("google_api_key") or os.getenv("GEMINI_API_KEY")
+    fireworks_api_key = api_keys.get("fireworks_api_key") or os.getenv("FIREWORKS_AI_API_KEY")
+
+    # Check if keys are present and non-empty
+    openai_present = bool(openai_api_key)
+    anthropic_present = bool(anthropic_api_key)
+    google_present = bool(gemini_api_key)
+    fireworks_ai_present = bool(fireworks_api_key)
 
     return {
         "openai": openai_present,

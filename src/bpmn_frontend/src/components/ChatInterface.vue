@@ -47,13 +47,35 @@
               </v-btn>
             </template>
           </v-tooltip>
+          <v-tooltip text="API Keys" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                @click="showApiKeysModal = true"
+                icon="mdi-key"
+                variant="text"
+                size="medium"
+                color="grey-darken-1"
+                class="mr-2"
+              >
+              </v-btn>
+            </template>
+          </v-tooltip>
           <ModelPicker
             @select-model="setSelectedModel"
             :has-images="hasImages"
+            ref="modelPicker"
           />
         </div>
       </div>
     </div>
+
+    <ApiKeysModal
+      :show="showApiKeysModal"
+      :can-cancel="hasAvailableProviders"
+      @close="showApiKeysModal = false"
+      @keys-updated="handleKeysUpdated"
+    />
 
     <div class="message-container">
       <div v-if="messages.length > 0" class="message-list">
@@ -201,9 +223,11 @@
 import ModelPicker from './ModelPicker.vue';
 import MessageCard from './MessageCard.vue';
 import LoadingIndicator from './LoadingIndicator.vue';
+import ApiKeysModal from './ApiKeysModal.vue';
 import { toRaw } from 'vue';
 import Intent from '../enums/Intent';
 import { bpmnAssistantUrl } from '../config';
+import { getApiKeys } from '../utils/apiKeys';
 
 export default {
   name: 'ChatInterface',
@@ -211,6 +235,7 @@ export default {
     ModelPicker,
     MessageCard,
     LoadingIndicator,
+    ApiKeysModal,
   },
   props: {
     onBpmnXmlReceived: Function,
@@ -230,6 +255,8 @@ export default {
       isDragging: false,
       showImageLimitSnackbar: false,
       conversationHasImages: false,
+      showApiKeysModal: false,
+      hasAvailableProviders: false,
     };
   },
   computed: {
@@ -350,9 +377,11 @@ export default {
       }
     },
     async determineIntent() {
+      const apiKeys = getApiKeys();
       const payload = {
         message_history: toRaw(this.messages),
         model: this.selectedModel,
+        api_keys: apiKeys,
       };
 
       try {
@@ -384,11 +413,13 @@ export default {
     },
     async talk(process, selectedModel, needsToBeFinalComment) {
       try {
+        const apiKeys = getApiKeys();
         const payload = {
           message_history: toRaw(this.messages),
           process: process,
           model: selectedModel,
           needs_to_be_final_comment: needsToBeFinalComment,
+          api_keys: apiKeys,
         };
 
         const response = await fetch(`${bpmnAssistantUrl}/talk`, {
@@ -439,10 +470,12 @@ export default {
     },
     async modify(process, selectedModel) {
       try {
+        const apiKeys = getApiKeys();
         const payload = {
           message_history: toRaw(this.messages),
           process: process,
           model: selectedModel,
+          api_keys: apiKeys,
         };
 
         const response = await fetch(`${bpmnAssistantUrl}/modify`, {
@@ -555,6 +588,18 @@ export default {
 
         const files = imageItems.map((item) => item.getAsFile()).filter(Boolean);
         this.processFiles(files);
+      }
+    },
+    handleKeysUpdated() {
+      // Refresh available providers after keys are updated
+      if (this.$refs.modelPicker) {
+        this.$refs.modelPicker.fetchAvailableProviders();
+      }
+    },
+    setHasAvailableProviders(hasProviders) {
+      this.hasAvailableProviders = hasProviders;
+      if (!hasProviders && !this.showApiKeysModal) {
+        this.showApiKeysModal = true;
       }
     },
   },

@@ -12,8 +12,8 @@ from bpmn_assistant.utils import (
 
 class ConversationalService:
 
-    def __init__(self, model: str):
-        self.llm_facade = get_llm_facade(model, output_mode=OutputMode.TEXT)
+    def __init__(self, model: str, api_keys: dict[str, str] | None = None):
+        self.llm_facade = get_llm_facade(model, output_mode=OutputMode.TEXT, api_keys=api_keys)
         self.prompt_processor = PromptTemplateProcessor()
 
     def respond_to_query(

@@ -25,6 +25,7 @@
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import ChatInterface from '../components/ChatInterface.vue';
 import { bpmnAssistantUrl, bpmnLayoutServerUrl } from '../config';
+import { getApiKeys } from '../utils/apiKeys';
 // import initialDiagram from "../assets/initialDiagram.js";
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
@@ -103,10 +104,11 @@ export default {
     },
     async createBpmnJson() {
       try {
+        const apiKeys = getApiKeys();
         const response = await fetch(`${bpmnAssistantUrl}/bpmn_to_json`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bpmn_xml: this.bpmnXml }),
+          body: JSON.stringify({ bpmn_xml: this.bpmnXml, api_keys: apiKeys }),
         });
 
         if (!response.ok) {
