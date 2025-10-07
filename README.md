@@ -13,6 +13,14 @@ https://github.com/user-attachments/assets/2f17bd99-f6fb-47a2-b33e-2190c3a834e2
 
 ## Quickstart
 
+### Option 1: Use the hosted version
+
+The easiest way to get started - no setup required!
+
+Visit **[bpmn-frontend.onrender.com](https://bpmn-frontend.onrender.com)** and provide your own API keys directly in the interface. Your keys are stored locally in your browser and never stored on any servers.
+
+### Option 2: Run locally with Docker
+
 1. Clone the repository
 
 ```
@@ -63,15 +71,18 @@ docker-compose up --build
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- At least one of the following API keys:
-    - [OpenAI API key](https://platform.openai.com/docs/quickstart)
-    - [Anthropic API key](https://console.anthropic.com/)
-    - [Google AI Studio (Gemini) API key](https://aistudio.google.com/app/apikey)
-    - [Fireworks AI API key](https://docs.fireworks.ai/getting-started/quickstart)
+At least one of the following API keys:
+  - [OpenAI API key](https://platform.openai.com/docs/quickstart)
+  - [Anthropic API key](https://console.anthropic.com/)
+  - [Google AI Studio (Gemini) API key](https://aistudio.google.com/app/apikey)
+  - [Fireworks AI API key](https://docs.fireworks.ai/getting-started/quickstart)
 
 Note: You can use any combination of the API keys above, but at least one is required to use the app.
+
+### Additional prerequisites for local deployment
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Supported models
 
