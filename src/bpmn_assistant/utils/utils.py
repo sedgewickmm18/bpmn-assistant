@@ -71,8 +71,6 @@ def get_available_providers(api_keys: dict[str, str] | None = None) -> dict:
     if api_keys is None:
         api_keys = {}
 
-    print(f"[get_available_providers] Received api_keys: {list(api_keys.keys()) if api_keys else 'None'}")
-
     # Get keys from user input or environment variables
     openai_api_key = api_keys.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
     anthropic_api_key = api_keys.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
@@ -85,15 +83,12 @@ def get_available_providers(api_keys: dict[str, str] | None = None) -> dict:
     google_present = bool(gemini_api_key)
     fireworks_ai_present = bool(fireworks_api_key)
 
-    result = {
+    return {
         "openai": openai_present,
         "anthropic": anthropic_present,
         "google": google_present,
         "fireworks_ai": fireworks_ai_present,
     }
-    print(f"[get_available_providers] Returning: {result}")
-
-    return result
 
 
 def replace_reasoning_model(model: str) -> str:
