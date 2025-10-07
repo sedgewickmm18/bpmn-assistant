@@ -76,11 +76,11 @@ Alternatively install all supporting packages first with python -m pip install .
   `npm install` followed by `node server.js`
   
 - bpmn_frontend (run ./src/bpmn_frontend)
-  `npm install` followed by `npm run dev`
+  `npm install` followed by `npm run dev -- --host`
 
 Please see below for starting a local LLM.
 
-5. Open your browser and go to `http://localhost:8080`
+5. Open your browser and go to `http://localhost:8080`  resp. `http://localhost:5173` when going with the non-dockerized version.
 
 ## Prerequisites
 
@@ -145,7 +145,7 @@ models:
   "granite4":
     cmd: |
       /usr/local/bin/llama-server
-      -m /home/markus-mueller/models/granite-4.0-tiny-preview.Q8_0.gguf
+      -m ~/models/granite-4.0-h-tiny-Q6_K.gguf
       -c 12000 -b 8000 --jinja
       --port ${PORT}
 ```
@@ -201,6 +201,7 @@ The application currently supports a subset of BPMN elements:
 * The AI assistant does not "see" manual edits made to the diagram. It always responds based on its last generated
   version. Keep this in mind when interacting with the assistant after making manual changes.
 * Pools and lanes are not supported due to limitations in the [BPMN Auto Layout](https://github.com/bpmn-io/bpmn-auto-layout) library.
+* Forms for user task variables are generated but currently ignored by the bpmn auto layouting process.
 
 ## Paper
 

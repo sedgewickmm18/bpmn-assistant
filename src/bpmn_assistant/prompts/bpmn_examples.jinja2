@@ -16,11 +16,26 @@ Textual description:
             "type": "userTask",
             "id": "task1",
             "label": "Send email to professor",
+            "variables": [
+                {  
+                   "id" : "emailContent",
+                   "readOnly" :  "no",
+                   "type": "String"
+                }
+            ],
+
         },
         {
             "type": "task",
             "id": "task2",
             "label": "Receive the email",
+            "variables": [
+                {  
+                   "id" : "emailContent",
+                   "readOnly" : "yes",
+                   "type": "String"
+                }
+            ],
         },
         {
             "type": "exclusiveGateway",
@@ -35,6 +50,13 @@ Textual description:
                             "type": "task",
                             "id": "task3",
                             "label": "Reply to the student",
+                            "variables": [
+                                {  
+                                    "id" : "replyContent",
+                                    "readOnly" : "no",
+                                    "type": "String"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -73,6 +95,13 @@ Textual description:
                         "type": "serviceTask",
                         "id": "task1",
                         "label": "Send mail to supplier",
+                        "variables": [
+                            {  
+                                "id" : "emailContent",
+                                "readOnly" : "no",
+                                "type": "String"
+                            }
+                        ]
                     },
                     {
                         "type": "task",
@@ -320,7 +349,7 @@ Textual description: "A batch process starts at midnight using a timer. The syst
 
 ---
 
-Textual description: "An order process starts when a customer submits an order. The order is then processed by the system. If the order is valid, it is fulfilled and the process ends with a successful delivery. If the order is invalid, the process ends with order rejection."
+Textual description: "An order process starts when a customer submits an order. The order is then processed by the system. If the order is valid, it is fulfilled and the process ends with a successful delivery. If the order is invalid, the process ends with order rejection and a message for the rejection is sent."
 
 ```json
 {
@@ -329,11 +358,25 @@ Textual description: "An order process starts when a customer submits an order. 
       "type": "startEvent",
       "id": "start",
       "label": "Order submitted"
+      "variables": [
+          {  
+              "id" : "orderContent",
+              "readOnly" : "no",
+              "type": "String"
+          }
+      ]
     },
     {
       "type": "task",
       "id": "task1",
       "label": "Process order"
+      "variables": [
+          {  
+              "id" : "orderContent",
+              "readOnly" : "yes",
+              "type": "String"
+          }
+      ]
     },
     {
       "type": "exclusiveGateway",
@@ -348,6 +391,13 @@ Textual description: "An order process starts when a customer submits an order. 
               "type": "task",
               "id": "task2",
               "label": "Fulfill order"
+              "variables": [
+                  {  
+                      "id" : "orderContent",
+                      "readOnly" : "yes",
+                      "type": "String"
+                  }
+              ]
             },
             {
               "type": "endEvent",
@@ -363,6 +413,17 @@ Textual description: "An order process starts when a customer submits an order. 
               "type": "endEvent",
               "id": "end2",
               "label": "Order rejected"
+              "variables": [
+                  {  
+                      "id" : "orderContent",
+                      "readOnly" : "yes",
+                      "type": "String"
+                  },
+                  {  
+                      "id" : "rejectMessage",
+                      "readOnly" : "no",
+                      "type": "String"
+              ]
             }
           ]
         }

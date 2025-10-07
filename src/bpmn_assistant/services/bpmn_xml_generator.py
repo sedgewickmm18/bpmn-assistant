@@ -34,6 +34,7 @@ class BpmnXmlGenerator:
         root.set("xmlns:bpmndi", "http://www.omg.org/spec/BPMN/20100524/DI")
         root.set("xmlns:dc", "http://www.omg.org/spec/DD/20100524/DC")
         root.set("xmlns:di", "http://www.omg.org/spec/DD/20100524/DI")
+        root.set("xmlns:flowable", "http://flowable.org/bpmn")
         root.set("id", "definitions_1")
 
         # Create the process element
@@ -47,12 +48,32 @@ class BpmnXmlGenerator:
             elem.set("id", element["id"])
 
             # Add label if it exists
-            if element["label"]:
+            if "label" in element and element["label"]:
                 elem.set("name", element["label"])
 
             # Add default flow attribute for inclusive/exclusive gateways if it exists
             if "default_flow" in element and element["default_flow"]:
                 elem.set("default", element["default_flow"])
+
+            if "variables" in element and element["variables"]:
+                for elpar in element["variables"]:
+                    print('VARIABLES', elpar)
+                    # TODO permissions ?
+                    extension_el = ET.SubElement(elem, "bpmn:extensionElements")
+                    form_el = ET.SubElement(extension_el, "flowable:formProperty")
+                    if 'type' in elpar and 'id' in elpar: 
+                        var_el = ET.SubElement(form_el, "flowable:value")
+                        var_el.set('id', elpar['id'])
+                        var_el.set('name', elpar['id'])
+                        var_el.set('type', elpar['type'])
+                        readable = "yes"
+                        if 'readable' in var_el: readable = elpar['readable']
+                        var_el.set('readable', readable)
+                        required = "yes"
+                        if 'required' in elpar: required = elpar['required']
+                        var_el.set('required', required)
+                #print(ET.tostring(elem, encoding='utf8'))
+                #print(ET.tostring(elem))
 
             # Add incoming and outgoing flows as child elements
             for incoming in element["incoming"]:
@@ -79,6 +100,7 @@ class BpmnXmlGenerator:
                 seq_flow.set("name", flow["condition"])
 
         xml_string = ET.tostring(root, encoding="unicode")
+        print("ALLES: ", xml_string)
 
         logger.info('create_bpmn_xml leave')
 

@@ -92,14 +92,22 @@ class LiteLLMProvider(LLMProvider):
             params["temperature"] = temperature
 
         #print('RESPONSE PARMS', params)
-        response = completion(**params)
+        if True:
+            response = completion(**params)
 
-        if not response.choices:
-            logger.error(f"Emtpy response from model: {response.choices}")
-            raise Exception("Empty response from model")
+            if not response.choices:
+                logger.error(f"Emtpy response from model: {response.choices}")
+                raise Exception("Empty response from model")
 
-        raw_output = response.choices[0].message.content
-        #print('RETURNED', raw_output)
+            raw_output = response.choices[0].message.content
+            f = open("json.txt","w")
+            f.write(raw_output)
+            f.close()
+        else:
+            f = open("json.txt")
+            raw_output = f.read()
+            f.close()
+        print('RETURNED', raw_output)
 
         if raw_output is None:
             logger.error(f"Model returned None content: {response}")
@@ -238,9 +246,11 @@ class LiteLLMProvider(LLMProvider):
                     raise ValueError(f"Invalid JSON response from LLM: {result}")
 
                 return result
-            except json.decoder.JSONDecodeError as e:
+            #except json.decoder.JSONDecodeError as e:
+            except Exception as e:
                 logger.error(f"JSONDecodeError: {e}")
                 logger.error(f"Raw output: {raw_output}")
+                #raise Exception("Invalid JSON response from LLM") from e
                 raise Exception("Invalid JSON response from LLM") from e
         elif self.output_mode == OutputMode.TEXT:
             return raw_output

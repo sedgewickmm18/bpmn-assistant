@@ -51,7 +51,7 @@ class BpmnModelingService:
         while attempts < max_retries:
             attempts += 1
             try:
-                response = llm_facade.call(prompt, max_tokens=3000, images=images)
+                response = llm_facade.call(prompt, max_tokens=4000, images=images)
                 logger.debug(f"LLM response:\n{json.dumps(response, indent=2)}")
                 process = response["process"]
                 validate_bpmn(process)
@@ -65,6 +65,8 @@ class BpmnModelingService:
                     f"Error (attempt {attempts}): {str(e)}\n"
                     f"Traceback: {traceback.format_exc()}"
                 )
+                print(f"Error (attempt {attempts}): {str(e)}\n")
+                print("GOT \n", process)
                 prompt = f"Error: {str(e)}. Try again."
 
         message = "Max number of retries reached. Could not create the BPMN process."

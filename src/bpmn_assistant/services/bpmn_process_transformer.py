@@ -87,6 +87,7 @@ class BpmnProcessTransformer:
                 branch_next = branch.get("next")
 
                 if branch_next:
+                    print("TRANSFORM PATH", branch["path"])
                     branch_structure = self.transform(branch["path"], branch_next)
                 else:
                     branch_structure = self.transform(
@@ -221,6 +222,7 @@ class BpmnProcessTransformer:
                 "id": element["id"],
                 "type": element["type"],
                 "label": element.get("label", None),
+                "variables": element.get("variables", None),
             }
 
             # Preserve eventDefinition if present

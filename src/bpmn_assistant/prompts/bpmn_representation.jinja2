@@ -16,11 +16,19 @@ Always try to specify the most specific task type:
 - Use 'task' only if the action cannot be clearly classified as any of the above
 Each task must be atomic - representing a single unit of work. Break down complex activities into multiple separate tasks.
 Labels must be clear and concise (ideally 2-4 words).
+Tasks can use form variables for inter-task communication.
 
 ```json
 {
     "type": String = "task" | "userTask" | "serviceTask" | "sendTask" | "receiveTask" | "businessRuleTask" | "manualTask" | "scriptTask"
     "id": String,
+    "variables": [
+        {
+           "id" : String,
+           "readOnly" :  Boolean = "yes" | "no",
+           "type": String = "Boolean" | "Integer" | "String" | "Date", "List",
+        }
+    ],
     "label": String, // short task description
 }
 ```
