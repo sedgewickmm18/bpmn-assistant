@@ -15,13 +15,15 @@
             class="message-image"
           />
         </div>
-        <div class="message-content" v-html="formattedContent"></div>
+        <div class="message-content" v-html="sanitizedContent"></div>
       </div>
     </div>
   </transition>
 </template>
 
 <script>
+import DOMPurify from 'dompurify';
+
 export default {
   props: {
     role: String,
@@ -35,11 +37,15 @@ export default {
     roleDisplay() {
       return this.role === 'user' ? 'You' : 'BPMN Assistant';
     },
-    formattedContent() {
-      return this.content
+    sanitizedContent() {
+      const formattedContent = (this.content || '')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n- /g, '<br>• ')
         .replace(/\n/g, '<br>');
+      return DOMPurify.sanitize(formattedContent, {
+        ALLOWED_TAGS: ['br', 'strong'],
+        ALLOWED_ATTR: [],
+      });
     },
   },
 };
