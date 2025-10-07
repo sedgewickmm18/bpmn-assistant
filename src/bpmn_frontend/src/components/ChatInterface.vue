@@ -203,6 +203,7 @@ import MessageCard from './MessageCard.vue';
 import LoadingIndicator from './LoadingIndicator.vue';
 import { toRaw } from 'vue';
 import Intent from '../enums/Intent';
+import { bpmnAssistantUrl } from '../config';
 
 export default {
   name: 'ChatInterface',
@@ -355,7 +356,7 @@ export default {
       };
 
       try {
-        const response = await fetch('http://localhost:8000/determine_intent', {
+        const response = await fetch(`${bpmnAssistantUrl}/determine_intent`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -390,7 +391,7 @@ export default {
           needs_to_be_final_comment: needsToBeFinalComment,
         };
 
-        const response = await fetch('http://localhost:8000/talk', {
+        const response = await fetch(`${bpmnAssistantUrl}/talk`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -444,7 +445,7 @@ export default {
           model: selectedModel,
         };
 
-        const response = await fetch('http://localhost:8000/modify', {
+        const response = await fetch(`${bpmnAssistantUrl}/modify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

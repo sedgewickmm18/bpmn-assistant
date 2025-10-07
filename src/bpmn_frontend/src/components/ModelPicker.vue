@@ -24,6 +24,8 @@
 </template>
 
 <script>
+import { bpmnAssistantUrl } from '../config';
+
 const Models = Object.freeze({
   GPT_5: 'gpt-5',
   GPT_5_MINI: 'gpt-5-mini',
@@ -133,7 +135,7 @@ export default {
     async fetchAvailableProviders() {
       try {
         const response = await fetch(
-          'http://localhost:8000/available_providers',
+          `${bpmnAssistantUrl}/available_providers`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
