@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from bpmn_assistant.api.requests import (
@@ -19,10 +19,10 @@ from bpmn_assistant.services import (
     determine_intent,
 )
 from bpmn_assistant.utils import (
-    replace_reasoning_model,
+    extract_images_from_message_history,
     get_available_providers,
     get_llm_facade,
-    extract_images_from_message_history,
+    replace_reasoning_model,
 )
 
 ALLOWED_ORIGINS = [
@@ -54,6 +54,11 @@ bpmn_xml_generator = BpmnXmlGenerator()
 async def health_check():
     """Health check endpoint for Render"""
     return {"status": "ok"}
+
+
+@app.head("/health")
+def health_head():
+    return Response(status_code=200)
 
 
 @app.post("/bpmn_to_json")
@@ -98,12 +103,18 @@ async def _modify(request: ModifyBpmnRequest) -> JSONResponse:
     then create a new BPMN process. Otherwise, edit the existing BPMN process.
     """
     llm_facade = get_llm_facade(request.model, api_keys=request.api_keys)
-    text_llm_facade = get_llm_facade(request.model, OutputMode.TEXT, api_keys=request.api_keys)
+    text_llm_facade = get_llm_facade(
+        request.model, OutputMode.TEXT, api_keys=request.api_keys
+    )
     images = extract_images_from_message_history(request.message_history)
 
     if request.process:
         process = bpmn_modeling_service.edit_bpmn(
-            llm_facade, text_llm_facade, request.process, request.message_history, images=images
+            llm_facade,
+            text_llm_facade,
+            request.process,
+            request.message_history,
+            images=images,
         )
     else:
         process = bpmn_modeling_service.create_bpmn(
