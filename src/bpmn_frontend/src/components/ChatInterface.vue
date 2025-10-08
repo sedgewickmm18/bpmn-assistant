@@ -278,6 +278,7 @@ export default {
       serviceWakeMessage: '',
       activeWakeService: null,
       wakeNoticeTimers: {},
+      wakeEscalationTimers: {},
       isHostedVersion: isHostedVersion,
     };
   },
@@ -296,15 +297,18 @@ export default {
   methods: {
     showServiceWakeNotice(message, serviceKey) {
       this.clearServiceWakeNoticeTimer(serviceKey);
+      this.clearWakeEscalationTimer(serviceKey);
       this.serviceWakeMessage = message;
       this.showServiceWakeMessage = true;
       this.activeWakeService = serviceKey;
     },
     hideServiceWakeNotice(serviceKey) {
+      this.clearServiceWakeNoticeTimer(serviceKey);
+      this.clearWakeEscalationTimer(serviceKey);
+
       if (this.activeWakeService !== serviceKey) {
         return;
       }
-      this.clearServiceWakeNoticeTimer(serviceKey);
       this.showServiceWakeMessage = false;
       this.serviceWakeMessage = '';
       this.activeWakeService = null;
@@ -316,15 +320,39 @@ export default {
         this.wakeNoticeTimers[serviceKey] = null;
       }
     },
-    scheduleServiceWakeNotice(message, serviceKey, delay = 700) {
+    clearWakeEscalationTimer(serviceKey) {
+      const timer = this.wakeEscalationTimers[serviceKey];
+      if (timer) {
+        clearTimeout(timer);
+        this.wakeEscalationTimers[serviceKey] = null;
+      }
+    },
+    scheduleWakeEscalation(serviceKey, message, delay = 50000) {
+      if (!message) {
+        return;
+      }
+      this.clearWakeEscalationTimer(serviceKey);
+      this.wakeEscalationTimers[serviceKey] = setTimeout(() => {
+        if (this.activeWakeService === serviceKey) {
+          this.serviceWakeMessage = message;
+        }
+        this.wakeEscalationTimers[serviceKey] = null;
+      }, delay);
+    },
+    scheduleServiceWakeNotice(
+      message,
+      serviceKey,
+      delay = 700,
+      longWaitMessage = null
+    ) {
       this.clearServiceWakeNoticeTimer(serviceKey);
       this.wakeNoticeTimers[serviceKey] = setTimeout(() => {
         this.showServiceWakeNotice(message, serviceKey);
+        this.scheduleWakeEscalation(serviceKey, longWaitMessage);
         this.wakeNoticeTimers[serviceKey] = null;
       }, delay);
     },
     cancelServiceWakeNotice(serviceKey) {
-      this.clearServiceWakeNoticeTimer(serviceKey);
       this.hideServiceWakeNotice(serviceKey);
     },
     async fetchAssistant(endpoint, options = {}) {
@@ -334,7 +362,9 @@ export default {
       if (shouldShowWake) {
         this.scheduleServiceWakeNotice(
           'Waking up the BPMN Assistant service... This can take up to a minute.',
-          serviceKey
+          serviceKey,
+          700,
+          'Still waking up the BPMN Assistant service. If this takes longer than a minute, refresh the page and try again.'
         );
       }
 

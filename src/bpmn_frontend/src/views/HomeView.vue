@@ -115,7 +115,9 @@ export default {
       if (shouldShowWake && this.$refs.chatInterface) {
         this.$refs.chatInterface.scheduleServiceWakeNotice(
           'Waking up the BPMN Assistant service... This can take up to a minute.',
-          serviceKey
+          serviceKey,
+          700,
+          'Still waking up the BPMN Assistant service. If this takes longer than a minute, refresh the page and try again.'
         );
       }
 
@@ -203,7 +205,9 @@ export default {
       if (shouldShowWake && this.$refs.chatInterface) {
         this.$refs.chatInterface.scheduleServiceWakeNotice(
           'Waking up the BPMN layout service... This can take up to a minute.',
-          serviceKey
+          serviceKey,
+          700,
+          'Still waking up the BPMN layout service. If this takes longer than a minute, refresh the page and try again.'
         );
       }
 
