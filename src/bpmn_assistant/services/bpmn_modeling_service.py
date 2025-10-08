@@ -45,6 +45,7 @@ class BpmnModelingService:
         )
 
         attempts = 0
+        last_error: Exception | None = None
 
         while attempts < max_retries:
             attempts += 1
@@ -58,15 +59,17 @@ class BpmnModelingService:
                 )
                 return process  # Return the process if it's valid
             except (ValueError, Exception) as e:
+                last_error = e
                 logger.warning(
                     f"Error (attempt {attempts}): {str(e)}\n"
                     f"Traceback: {traceback.format_exc()}"
                 )
                 prompt = f"Error: {str(e)}. Try again."
 
-        raise Exception(
-            "Max number of retries reached. Could not create the BPMN process."
-        )
+        message = "Max number of retries reached. Could not create the BPMN process."
+        if last_error:
+            message += f" Last error from provider: {last_error}"
+        raise Exception(message)
 
     def edit_bpmn(
         self,

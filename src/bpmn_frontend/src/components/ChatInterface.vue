@@ -100,10 +100,10 @@
       <v-alert
         v-if="hasError"
         type="error"
-        text="An error occurred while processing your request. Please try again."
+        :text="errorMessage || defaultErrorMessage"
         class="mb-5 text-body-2"
         closable
-        @click:close="hasError = false"
+        @click:close="clearError"
       />
     </div>
 
@@ -251,6 +251,8 @@ export default {
       currentInput: '',
       selectedModel: '',
       hasError: false,
+      errorMessage: '',
+      defaultErrorMessage: 'An error occurred while processing your request. Please try again.',
       selectedImages: [],
       isDragging: false,
       showImageLimitSnackbar: false,
@@ -275,7 +277,7 @@ export default {
     reset() {
       this.messages = [];
       this.currentInput = '';
-      this.hasError = false;
+      this.clearError();
       this.selectedImages = [];
       this.conversationHasImages = false;
       this.onBpmnJsonReceived(null);
@@ -321,7 +323,7 @@ export default {
       }
 
       // Clear any previous errors
-      this.hasError = false;
+      this.clearError();
 
       // Create the message object with text and images
       const message = {
@@ -374,6 +376,9 @@ export default {
           break;
         default:
           console.error('Unknown intent:', intent);
+          if (!this.hasError) {
+            this.setError();
+          }
       }
     },
     async determineIntent() {
@@ -393,7 +398,7 @@ export default {
 
         if (!response.ok) {
           console.error(`HTTP error! Status: ${response.status}`);
-          this.hasError = true;
+          await this.handleErrorResponse(response, 'Failed to determine intent.');
           return;
         }
 
@@ -401,14 +406,16 @@ export default {
 
         if (!Object.values(Intent).includes(data.intent)) {
           console.error('Unknown intent:', data.intent);
-          this.hasError = true;
+          if (!this.hasError) {
+            this.setError();
+          }
           return;
         }
 
         return data.intent;
       } catch (error) {
         console.error('Error determining intent:', error);
-        this.hasError = true;
+        this.setError(error?.message);
       }
     },
     async talk(process, selectedModel, needsToBeFinalComment) {
@@ -430,7 +437,10 @@ export default {
 
         if (!response.ok) {
           console.error(`HTTP error! Status: ${response.status}`);
-          this.hasError = true;
+          await this.handleErrorResponse(
+            response,
+            'Unable to process the assistant response.'
+          );
           return;
         }
 
@@ -465,7 +475,7 @@ export default {
         return reader.read().then(processText);
       } catch (error) {
         console.error('Error responding to user query:', error);
-        this.hasError = true;
+        this.setError(error?.message);
       }
     },
     async modify(process, selectedModel) {
@@ -487,7 +497,7 @@ export default {
         if (!response.ok) {
           console.error(`HTTP error! Status: ${response.status}`);
           this.isLoading = false;
-          this.hasError = true;
+          await this.handleErrorResponse(response, 'Unable to modify the BPMN process.');
           return;
         }
 
@@ -502,7 +512,7 @@ export default {
       } catch (error) {
         console.error('Error modifying BPMN:', error);
         this.isLoading = false;
-        this.hasError = true;
+        this.setError(error?.message);
       }
     },
     scrollToBottom() {
@@ -589,6 +599,71 @@ export default {
         const files = imageItems.map((item) => item.getAsFile()).filter(Boolean);
         this.processFiles(files);
       }
+    },
+    clearError() {
+      this.hasError = false;
+      this.errorMessage = '';
+    },
+    setError(message) {
+      this.errorMessage =
+        this.normalizeErrorMessage(message) || this.defaultErrorMessage;
+      this.hasError = true;
+    },
+    async handleErrorResponse(response, fallbackMessage) {
+      let message = fallbackMessage || this.defaultErrorMessage;
+      const contentType = response.headers.get('content-type') || '';
+
+      try {
+        if (contentType.includes('application/json')) {
+          const payload = await response.json();
+          if (payload) {
+            if (typeof payload.detail === 'string' && payload.detail.trim()) {
+              message = payload.detail;
+            } else if (Array.isArray(payload.detail) && payload.detail.length) {
+              message = payload.detail.map((item) => item.msg || item).join(', ');
+            } else if (typeof payload.message === 'string' && payload.message.trim()) {
+              message = payload.message;
+            } else if (payload.error) {
+              message =
+                typeof payload.error === 'string'
+                  ? payload.error
+                  : JSON.stringify(payload.error);
+            }
+          }
+        } else {
+          const text = await response.text();
+          if (text && text.trim()) {
+            message = text;
+          }
+        }
+      } catch (parseError) {
+        console.error('Error parsing response body:', parseError);
+      }
+
+      this.setError(message);
+    },
+    normalizeErrorMessage(rawMessage) {
+      if (!rawMessage) {
+        return '';
+      }
+
+      const sanitized = String(rawMessage);
+
+      if (
+        /incorrect api key provided/i.test(sanitized) ||
+        /invalid x-api-key/i.test(sanitized) ||
+        /api key not valid/i.test(sanitized) ||
+        /api_key_invalid/i.test(sanitized) ||
+        /unauthorized/i.test(sanitized)
+      ) {
+        return 'Authentication failed: please verify your API key in the API Keys modal.';
+      }
+
+      if (/credit balance is too low/i.test(sanitized)) {
+        return 'The provider rejected the request because the account has insufficient credits.';
+      }
+
+      return sanitized;
     },
     handleKeysUpdated() {
       // Refresh available providers after keys are updated

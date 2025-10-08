@@ -46,6 +46,8 @@ class BpmnEditingService:
             change_request=self.change_request,
         )
 
+        last_error: Exception | None = None
+
         while attempts < max_retries:
             attempts += 1
 
@@ -62,13 +64,18 @@ class BpmnEditingService:
                     updated_process = self._update_process(self.process, edit_proposal)
                     return updated_process
                 except ProcessException as e:
+                    last_error = e
                     logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
                     prompt = f"Error: {str(e)}. Try again. Change request: {self.change_request}"
             except ValueError as e:
+                last_error = e
                 logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
                 prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
 
-        raise Exception("Max number of retries reached.")
+        message = "Max number of retries reached."
+        if last_error:
+            message += f" Last error from provider: {last_error}"
+        raise Exception(message)
 
     def _apply_intermediate_edits(
         self,
@@ -87,6 +94,8 @@ class BpmnEditingService:
         Raises:
             Exception: If the max number of retries or iterations is reached
         """
+        last_iteration_error: Exception | None = None
+
         for iteration_index in range(max_num_of_iterations):
             attempts = 0
 
@@ -94,6 +103,8 @@ class BpmnEditingService:
                 "edit_bpmn_intermediate_step.jinja2",
                 process=str(updated_process),
             )
+
+            last_error: Exception | None = None
 
             while attempts < max_retries:
                 attempts += 1
@@ -116,15 +127,23 @@ class BpmnEditingService:
                     break
 
                 except (ValueError, ProcessException) as e:
+                    last_error = e
+                    last_iteration_error = e
                     logger.warning(f"Validation error (attempt {attempts}): {str(e)}")
                     prompt = f"Editing error: {str(e)}. Provide a new edit proposal."
 
             else:
-                raise Exception(
+                error_message = (
                     f"Edit iteration {iteration_index+1} failed after {max_retries} attempts."
                 )
+                if last_error:
+                    error_message += f" Last error from provider: {last_error}"
+                raise Exception(error_message)
 
-        raise Exception("Max number of editing iterations reached.")
+        message = "Max number of editing iterations reached."
+        if last_iteration_error:
+            message += f" Last error from provider: {last_iteration_error}"
+        raise Exception(message)
 
     def _update_process(self, process: list, edit_proposal: dict) -> list:
         """

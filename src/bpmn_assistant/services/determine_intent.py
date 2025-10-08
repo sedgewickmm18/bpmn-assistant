@@ -52,6 +52,7 @@ def determine_intent(
     )
 
     attempts = 0
+    last_error: Exception | None = None
 
     while attempts < max_retries:
 
@@ -69,6 +70,7 @@ def determine_intent(
             logger.info(f"Intent: {json_object}")
             return json_object
         except Exception as e:
+            last_error = e
             logger.warning(
                 f"Validation error (attempt {attempts}): {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}"
@@ -76,4 +78,7 @@ def determine_intent(
 
             prompt = f"Error: {str(e)}. Try again."
 
-    raise Exception("Maximum number of retries reached. Could not determine intent.")
+    error_message = "Maximum number of retries reached. Could not determine intent."
+    if last_error:
+        error_message += f" Last error from provider: {last_error}"
+    raise Exception(error_message)
