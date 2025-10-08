@@ -79,6 +79,15 @@
     />
 
     <div class="message-container">
+      <v-alert
+        v-if="isHostedVersion && showServiceWakeMessage"
+        type="info"
+        variant="tonal"
+        class="mb-5 text-body-2"
+      >
+        {{ serviceWakeMessage }}
+      </v-alert>
+
       <div v-if="messages.length > 0" class="message-list">
         <MessageCard
           v-for="(message, index) in messages"
@@ -228,6 +237,7 @@ import ApiKeysModal from './ApiKeysModal.vue';
 import { toRaw } from 'vue';
 import Intent from '../enums/Intent';
 import { bpmnAssistantUrl, isHostedVersion } from '../config';
+import { consumeWakeNotice, wakeServiceKeys } from '../utils/serviceWakeTracker';
 import { getApiKeys } from '../utils/apiKeys';
 
 export default {
@@ -260,6 +270,9 @@ export default {
       conversationHasImages: false,
       showApiKeysModal: false,
       hasAvailableProviders: false,
+      showServiceWakeMessage: false,
+      serviceWakeMessage: '',
+      activeWakeService: null,
       isHostedVersion: isHostedVersion,
     };
   },
@@ -276,6 +289,38 @@ export default {
     },
   },
   methods: {
+    showServiceWakeNotice(message, serviceKey) {
+      this.serviceWakeMessage = message;
+      this.showServiceWakeMessage = true;
+      this.activeWakeService = serviceKey;
+    },
+    hideServiceWakeNotice(serviceKey) {
+      if (this.activeWakeService !== serviceKey) {
+        return;
+      }
+      this.showServiceWakeMessage = false;
+      this.serviceWakeMessage = '';
+      this.activeWakeService = null;
+    },
+    async fetchAssistant(endpoint, options = {}) {
+      const serviceKey = wakeServiceKeys.ASSISTANT;
+      const shouldShowWake = consumeWakeNotice(serviceKey);
+
+      if (shouldShowWake) {
+        this.showServiceWakeNotice(
+          'Waking up the BPMN Assistant service... This can take up to a minute.',
+          serviceKey
+        );
+      }
+
+      try {
+        return await fetch(`${bpmnAssistantUrl}${endpoint}`, options);
+      } finally {
+        if (shouldShowWake) {
+          this.hideServiceWakeNotice(serviceKey);
+        }
+      }
+    },
     reset() {
       this.messages = [];
       this.currentInput = '';
@@ -392,7 +437,7 @@ export default {
       };
 
       try {
-        const response = await fetch(`${bpmnAssistantUrl}/determine_intent`, {
+        const response = await this.fetchAssistant('/determine_intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -431,7 +476,7 @@ export default {
           api_keys: apiKeys,
         };
 
-        const response = await fetch(`${bpmnAssistantUrl}/talk`, {
+        const response = await this.fetchAssistant('/talk', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -490,7 +535,7 @@ export default {
           api_keys: apiKeys,
         };
 
-        const response = await fetch(`${bpmnAssistantUrl}/modify`, {
+        const response = await this.fetchAssistant('/modify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

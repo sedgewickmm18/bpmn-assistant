@@ -2,6 +2,7 @@
   <div style="display: flex; flex-direction: row; height: 100vh">
     <div class="chat-container">
       <ChatInterface
+        ref="chatInterface"
         @bpmn-xml-received="handleBpmnXml"
         @bpmn-json-received="setBpmnJson"
         @download="downloadBpmnFile"
@@ -26,6 +27,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import ChatInterface from '../components/ChatInterface.vue';
 import { bpmnAssistantUrl, bpmnLayoutServerUrl } from '../config';
 import { getApiKeys } from '../utils/apiKeys';
+import { consumeWakeNotice, wakeServiceKeys } from '../utils/serviceWakeTracker';
 // import initialDiagram from "../assets/initialDiagram.js";
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
@@ -103,6 +105,16 @@ export default {
       }
     },
     async createBpmnJson() {
+      const serviceKey = wakeServiceKeys.ASSISTANT;
+      const shouldShowWake = consumeWakeNotice(serviceKey);
+
+      if (shouldShowWake && this.$refs.chatInterface) {
+        this.$refs.chatInterface.showServiceWakeNotice(
+          'Waking up the BPMN Assistant service... This can take up to a minute.',
+          serviceKey
+        );
+      }
+
       try {
         const apiKeys = getApiKeys();
         const response = await fetch(`${bpmnAssistantUrl}/bpmn_to_json`, {
@@ -124,6 +136,10 @@ export default {
           'There was a problem while loading the BPMN file',
           'error'
         );
+      } finally {
+        if (shouldShowWake && this.$refs.chatInterface) {
+          this.$refs.chatInterface.hideServiceWakeNotice(serviceKey);
+        }
       }
     },
     async handleBpmnXml(bpmnXmlValue) {
@@ -162,6 +178,16 @@ export default {
       }
     },
     async processDiagram(bpmnDiagram) {
+      const serviceKey = wakeServiceKeys.LAYOUT;
+      const shouldShowWake = consumeWakeNotice(serviceKey);
+
+      if (shouldShowWake && this.$refs.chatInterface) {
+        this.$refs.chatInterface.showServiceWakeNotice(
+          'Waking up the BPMN layout service... This can take up to a minute.',
+          serviceKey
+        );
+      }
+
       try {
         const response = await fetch(`${bpmnLayoutServerUrl}/process-bpmn`, {
           method: 'POST',
@@ -182,6 +208,10 @@ export default {
         return layoutedXml;
       } catch (error) {
         console.error('Failed to process the diagram:', error);
+      } finally {
+        if (shouldShowWake && this.$refs.chatInterface) {
+          this.$refs.chatInterface.hideServiceWakeNotice(serviceKey);
+        }
       }
     },
     async downloadBpmnFile() {
