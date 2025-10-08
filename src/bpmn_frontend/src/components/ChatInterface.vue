@@ -237,7 +237,11 @@ import ApiKeysModal from './ApiKeysModal.vue';
 import { toRaw } from 'vue';
 import Intent from '../enums/Intent';
 import { bpmnAssistantUrl, isHostedVersion } from '../config';
-import { consumeWakeNotice, wakeServiceKeys } from '../utils/serviceWakeTracker';
+import {
+  consumeWakeNotice,
+  wakeServiceKeys,
+  resetWakeNotice,
+} from '../utils/serviceWakeTracker';
 import { getApiKeys } from '../utils/apiKeys';
 
 export default {
@@ -273,6 +277,7 @@ export default {
       showServiceWakeMessage: false,
       serviceWakeMessage: '',
       activeWakeService: null,
+      wakeNoticeTimers: {},
       isHostedVersion: isHostedVersion,
     };
   },
@@ -290,6 +295,7 @@ export default {
   },
   methods: {
     showServiceWakeNotice(message, serviceKey) {
+      this.clearServiceWakeNoticeTimer(serviceKey);
       this.serviceWakeMessage = message;
       this.showServiceWakeMessage = true;
       this.activeWakeService = serviceKey;
@@ -298,26 +304,60 @@ export default {
       if (this.activeWakeService !== serviceKey) {
         return;
       }
+      this.clearServiceWakeNoticeTimer(serviceKey);
       this.showServiceWakeMessage = false;
       this.serviceWakeMessage = '';
       this.activeWakeService = null;
+    },
+    clearServiceWakeNoticeTimer(serviceKey) {
+      const timer = this.wakeNoticeTimers[serviceKey];
+      if (timer) {
+        clearTimeout(timer);
+        this.wakeNoticeTimers[serviceKey] = null;
+      }
+    },
+    scheduleServiceWakeNotice(message, serviceKey, delay = 700) {
+      this.clearServiceWakeNoticeTimer(serviceKey);
+      this.wakeNoticeTimers[serviceKey] = setTimeout(() => {
+        this.showServiceWakeNotice(message, serviceKey);
+        this.wakeNoticeTimers[serviceKey] = null;
+      }, delay);
+    },
+    cancelServiceWakeNotice(serviceKey) {
+      this.clearServiceWakeNoticeTimer(serviceKey);
+      this.hideServiceWakeNotice(serviceKey);
     },
     async fetchAssistant(endpoint, options = {}) {
       const serviceKey = wakeServiceKeys.ASSISTANT;
       const shouldShowWake = consumeWakeNotice(serviceKey);
 
       if (shouldShowWake) {
-        this.showServiceWakeNotice(
+        this.scheduleServiceWakeNotice(
           'Waking up the BPMN Assistant service... This can take up to a minute.',
           serviceKey
         );
       }
 
       try {
-        return await fetch(`${bpmnAssistantUrl}${endpoint}`, options);
+        const response = await fetch(`${bpmnAssistantUrl}${endpoint}`, options);
+
+        if (
+          shouldShowWake &&
+          !response.ok &&
+          (response.status >= 500 || response.status === 0)
+        ) {
+          resetWakeNotice(serviceKey);
+        }
+
+        return response;
+      } catch (error) {
+        if (shouldShowWake) {
+          resetWakeNotice(serviceKey);
+        }
+        throw error;
       } finally {
         if (shouldShowWake) {
-          this.hideServiceWakeNotice(serviceKey);
+          this.cancelServiceWakeNotice(serviceKey);
         }
       }
     },

@@ -35,4 +35,16 @@ export function consumeWakeNotice(serviceKey) {
   return true;
 }
 
+export function resetWakeNotice(serviceKey) {
+  if (!isHostedVersion) {
+    return;
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(serviceWakeState, serviceKey)) {
+    return;
+  }
+
+  serviceWakeState[serviceKey] = false;
+}
+
 export { SERVICE_KEYS as wakeServiceKeys };
