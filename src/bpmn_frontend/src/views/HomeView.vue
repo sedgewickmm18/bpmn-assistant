@@ -2,7 +2,6 @@
   <div style="display: flex; flex-direction: row; height: 100vh">
     <div class="chat-container">
       <ChatInterface
-        ref="chatInterface"
         @bpmn-xml-received="handleBpmnXml"
         @bpmn-json-received="setBpmnJson"
         @download="downloadBpmnFile"
@@ -27,11 +26,6 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import ChatInterface from '../components/ChatInterface.vue';
 import { bpmnAssistantUrl, bpmnLayoutServerUrl } from '../config';
 import { getApiKeys } from '../utils/apiKeys';
-import {
-  consumeWakeNotice,
-  wakeServiceKeys,
-  resetWakeNotice,
-} from '../utils/serviceWakeTracker';
 // import initialDiagram from "../assets/initialDiagram.js";
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
@@ -109,24 +103,9 @@ export default {
       }
     },
     async createBpmnJson() {
-      const serviceKey = wakeServiceKeys.ASSISTANT;
-      const shouldShowWake = consumeWakeNotice(serviceKey);
-
-      if (shouldShowWake && this.$refs.chatInterface) {
-        this.$refs.chatInterface.scheduleServiceWakeNotice(
-          'Waking up the BPMN Assistant service... This can take up to a minute.',
-          serviceKey,
-          700,
-          'Still waking up the BPMN Assistant service. If this takes longer than a minute, refresh the page and try again.'
-        );
-      }
-
-      const apiKeys = getApiKeys();
-      let response = null;
-      let success = false;
-
       try {
-        response = await fetch(`${bpmnAssistantUrl}/bpmn_to_json`, {
+        const apiKeys = getApiKeys();
+        const response = await fetch(`${bpmnAssistantUrl}/bpmn_to_json`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ bpmn_xml: this.bpmnXml, api_keys: apiKeys }),
@@ -137,30 +116,14 @@ export default {
         }
 
         this.process = await response.json();
-        success = true;
         console.log('BPMN JSON created successfully:', this.process);
         this.showSnackbar('BPMN successfully uploaded', 'success');
       } catch (error) {
         console.error('Error creating BPMN JSON:', error);
-        const serviceStillWaking =
-          shouldShowWake &&
-          !success &&
-          (response === null || response.status >= 500 || response.status === 0);
-
-        if (serviceStillWaking) {
-          resetWakeNotice(serviceKey);
-        }
-
         this.showSnackbar(
-          serviceStillWaking
-            ? 'The BPMN Assistant service is still waking up. Please try again in a few seconds.'
-            : 'There was a problem while loading the BPMN file',
-          serviceStillWaking ? 'info' : 'error'
+          'There was a problem while loading the BPMN file',
+          'error'
         );
-      } finally {
-        if (shouldShowWake && this.$refs.chatInterface) {
-          this.$refs.chatInterface.cancelServiceWakeNotice(serviceKey);
-        }
       }
     },
     async handleBpmnXml(bpmnXmlValue) {
@@ -199,23 +162,8 @@ export default {
       }
     },
     async processDiagram(bpmnDiagram) {
-      const serviceKey = wakeServiceKeys.LAYOUT;
-      const shouldShowWake = consumeWakeNotice(serviceKey);
-
-      if (shouldShowWake && this.$refs.chatInterface) {
-        this.$refs.chatInterface.scheduleServiceWakeNotice(
-          'Waking up the BPMN layout service... This can take up to a minute.',
-          serviceKey,
-          700,
-          'Still waking up the BPMN layout service. If this takes longer than a minute, refresh the page and try again.'
-        );
-      }
-
-      let response = null;
-      let success = false;
-
       try {
-        response = await fetch(`${bpmnLayoutServerUrl}/process-bpmn`, {
+        const response = await fetch(`${bpmnLayoutServerUrl}/process-bpmn`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -228,31 +176,12 @@ export default {
         }
 
         const { layoutedXml } = await response.json();
-        success = true;
 
         console.log(layoutedXml);
 
         return layoutedXml;
       } catch (error) {
         console.error('Failed to process the diagram:', error);
-        const serviceStillWaking =
-          shouldShowWake &&
-          !success &&
-          (response === null || response.status >= 500 || response.status === 0);
-
-        if (serviceStillWaking) {
-          resetWakeNotice(serviceKey);
-          this.showSnackbar(
-            'The BPMN layout service is still waking up. Please try again in a few seconds.',
-            'info'
-          );
-        } else {
-          this.showSnackbar('Failed to process the BPMN diagram.', 'error');
-        }
-      } finally {
-        if (shouldShowWake && this.$refs.chatInterface) {
-          this.$refs.chatInterface.cancelServiceWakeNotice(serviceKey);
-        }
       }
     },
     async downloadBpmnFile() {

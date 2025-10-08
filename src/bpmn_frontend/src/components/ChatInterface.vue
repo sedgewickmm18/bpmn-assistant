@@ -79,15 +79,6 @@
     />
 
     <div class="message-container">
-      <v-alert
-        v-if="isHostedVersion && showServiceWakeMessage"
-        type="info"
-        variant="tonal"
-        class="mb-5 text-body-2"
-      >
-        {{ serviceWakeMessage }}
-      </v-alert>
-
       <div v-if="messages.length > 0" class="message-list">
         <MessageCard
           v-for="(message, index) in messages"
@@ -237,11 +228,6 @@ import ApiKeysModal from './ApiKeysModal.vue';
 import { toRaw } from 'vue';
 import Intent from '../enums/Intent';
 import { bpmnAssistantUrl, isHostedVersion } from '../config';
-import {
-  consumeWakeNotice,
-  wakeServiceKeys,
-  resetWakeNotice,
-} from '../utils/serviceWakeTracker';
 import { getApiKeys } from '../utils/apiKeys';
 
 export default {
@@ -274,11 +260,6 @@ export default {
       conversationHasImages: false,
       showApiKeysModal: false,
       hasAvailableProviders: false,
-      showServiceWakeMessage: false,
-      serviceWakeMessage: '',
-      activeWakeService: null,
-      wakeNoticeTimers: {},
-      wakeEscalationTimers: {},
       isHostedVersion: isHostedVersion,
     };
   },
@@ -295,102 +276,6 @@ export default {
     },
   },
   methods: {
-    showServiceWakeNotice(message, serviceKey) {
-      this.clearServiceWakeNoticeTimer(serviceKey);
-      this.clearWakeEscalationTimer(serviceKey);
-      this.serviceWakeMessage = message;
-      this.showServiceWakeMessage = true;
-      this.activeWakeService = serviceKey;
-    },
-    hideServiceWakeNotice(serviceKey) {
-      this.clearServiceWakeNoticeTimer(serviceKey);
-      this.clearWakeEscalationTimer(serviceKey);
-
-      if (this.activeWakeService !== serviceKey) {
-        return;
-      }
-      this.showServiceWakeMessage = false;
-      this.serviceWakeMessage = '';
-      this.activeWakeService = null;
-    },
-    clearServiceWakeNoticeTimer(serviceKey) {
-      const timer = this.wakeNoticeTimers[serviceKey];
-      if (timer) {
-        clearTimeout(timer);
-        this.wakeNoticeTimers[serviceKey] = null;
-      }
-    },
-    clearWakeEscalationTimer(serviceKey) {
-      const timer = this.wakeEscalationTimers[serviceKey];
-      if (timer) {
-        clearTimeout(timer);
-        this.wakeEscalationTimers[serviceKey] = null;
-      }
-    },
-    scheduleWakeEscalation(serviceKey, message, delay = 50000) {
-      if (!message) {
-        return;
-      }
-      this.clearWakeEscalationTimer(serviceKey);
-      this.wakeEscalationTimers[serviceKey] = setTimeout(() => {
-        if (this.activeWakeService === serviceKey) {
-          this.serviceWakeMessage = message;
-        }
-        this.wakeEscalationTimers[serviceKey] = null;
-      }, delay);
-    },
-    scheduleServiceWakeNotice(
-      message,
-      serviceKey,
-      delay = 700,
-      longWaitMessage = null
-    ) {
-      this.clearServiceWakeNoticeTimer(serviceKey);
-      this.wakeNoticeTimers[serviceKey] = setTimeout(() => {
-        this.showServiceWakeNotice(message, serviceKey);
-        this.scheduleWakeEscalation(serviceKey, longWaitMessage);
-        this.wakeNoticeTimers[serviceKey] = null;
-      }, delay);
-    },
-    cancelServiceWakeNotice(serviceKey) {
-      this.hideServiceWakeNotice(serviceKey);
-    },
-    async fetchAssistant(endpoint, options = {}) {
-      const serviceKey = wakeServiceKeys.ASSISTANT;
-      const shouldShowWake = consumeWakeNotice(serviceKey);
-
-      if (shouldShowWake) {
-        this.scheduleServiceWakeNotice(
-          'Waking up the BPMN Assistant service... This can take up to a minute.',
-          serviceKey,
-          700,
-          'Still waking up the BPMN Assistant service. If this takes longer than a minute, refresh the page and try again.'
-        );
-      }
-
-      try {
-        const response = await fetch(`${bpmnAssistantUrl}${endpoint}`, options);
-
-        if (
-          shouldShowWake &&
-          !response.ok &&
-          (response.status >= 500 || response.status === 0)
-        ) {
-          resetWakeNotice(serviceKey);
-        }
-
-        return response;
-      } catch (error) {
-        if (shouldShowWake) {
-          resetWakeNotice(serviceKey);
-        }
-        throw error;
-      } finally {
-        if (shouldShowWake) {
-          this.cancelServiceWakeNotice(serviceKey);
-        }
-      }
-    },
     reset() {
       this.messages = [];
       this.currentInput = '';
@@ -507,7 +392,7 @@ export default {
       };
 
       try {
-        const response = await this.fetchAssistant('/determine_intent', {
+        const response = await fetch(`${bpmnAssistantUrl}/determine_intent`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -546,7 +431,7 @@ export default {
           api_keys: apiKeys,
         };
 
-        const response = await this.fetchAssistant('/talk', {
+        const response = await fetch(`${bpmnAssistantUrl}/talk`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -605,7 +490,7 @@ export default {
           api_keys: apiKeys,
         };
 
-        const response = await this.fetchAssistant('/modify', {
+        const response = await fetch(`${bpmnAssistantUrl}/modify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
