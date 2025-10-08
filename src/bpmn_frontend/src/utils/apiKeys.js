@@ -2,13 +2,20 @@
  * Utility functions for managing API keys in sessionStorage
  */
 
+import { isHostedVersion } from '../config';
+
 const STORAGE_KEY = 'bpmn_api_keys';
 
 /**
  * Get API keys from sessionStorage
- * @returns {Object} Object containing API keys (openai_api_key, anthropic_api_key, etc.)
+ * @returns {Object|null} Object containing API keys (openai_api_key, anthropic_api_key, etc.), or null if on local version
  */
 export function getApiKeys() {
+  // On local Docker version, API keys come from .env file on backend
+  if (!isHostedVersion) {
+    return null;
+  }
+
   const stored = sessionStorage.getItem(STORAGE_KEY);
   if (!stored) {
     return {};

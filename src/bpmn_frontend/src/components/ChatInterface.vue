@@ -47,7 +47,7 @@
               </v-btn>
             </template>
           </v-tooltip>
-          <v-tooltip text="API Keys" location="bottom">
+          <v-tooltip text="API Keys" location="bottom" v-if="isHostedVersion">
             <template v-slot:activator="{ props }">
               <v-btn
                 v-bind="props"
@@ -71,6 +71,7 @@
     </div>
 
     <ApiKeysModal
+      v-if="isHostedVersion"
       :show="showApiKeysModal"
       :can-cancel="hasAvailableProviders"
       @close="showApiKeysModal = false"
@@ -226,7 +227,7 @@ import LoadingIndicator from './LoadingIndicator.vue';
 import ApiKeysModal from './ApiKeysModal.vue';
 import { toRaw } from 'vue';
 import Intent from '../enums/Intent';
-import { bpmnAssistantUrl } from '../config';
+import { bpmnAssistantUrl, isHostedVersion } from '../config';
 import { getApiKeys } from '../utils/apiKeys';
 
 export default {
@@ -259,6 +260,7 @@ export default {
       conversationHasImages: false,
       showApiKeysModal: false,
       hasAvailableProviders: false,
+      isHostedVersion: isHostedVersion,
     };
   },
   computed: {
@@ -673,7 +675,7 @@ export default {
     },
     setHasAvailableProviders(hasProviders) {
       this.hasAvailableProviders = hasProviders;
-      if (!hasProviders && !this.showApiKeysModal) {
+      if (!hasProviders && !this.showApiKeysModal && this.isHostedVersion) {
         this.showApiKeysModal = true;
       }
     },
