@@ -218,6 +218,16 @@ class TestBpmnJsonGenerator:
 
         assert result == expected
 
+    def test_create_bpmn_json_parallel_gateway_without_join(
+        self, bpmn_xml_parallel_gateway_no_join
+    ):
+        bpmn_json_generator = BpmnJsonGenerator()
+
+        with pytest.raises(
+            ValueError, match="Parallel gateway must have a corresponding join gateway"
+        ):
+            bpmn_json_generator.create_bpmn_json(bpmn_xml_parallel_gateway_no_join)
+
     def test_create_bpmn_json_pg_inside_eg(self, bpmn_xml_pg_inside_eg):
 
         bpmn_json_generator = BpmnJsonGenerator()
@@ -807,3 +817,45 @@ class TestBpmnJsonGenerator:
 
         assert result == expected
 
+    def test_create_bpmn_json_inclusive_gateway_next(self, bpmn_xml_inclusive_next):
+        bpmn_json_generator = BpmnJsonGenerator()
+
+        result = bpmn_json_generator.create_bpmn_json(bpmn_xml_inclusive_next)
+
+        expected = [
+            {"type": "startEvent", "id": "start"},
+            {"type": "task", "id": "taskEntry", "label": "Work on task"},
+            {
+                "type": "inclusiveGateway",
+                "id": "inc",
+                "label": "How to proceed?",
+                "has_join": False,
+                "branches": [
+                    {
+                        "condition": "Retry work",
+                        "path": [
+                            {
+                                "type": "task",
+                                "id": "taskRepeat",
+                                "label": "Review work",
+                            }
+                        ],
+                        "is_default": False,
+                        "next": "taskEntry",
+                    },
+                    {
+                        "path": [
+                            {
+                                "type": "task",
+                                "id": "taskFinish",
+                                "label": "Finish up",
+                            },
+                            {"type": "endEvent", "id": "end"},
+                        ],
+                        "is_default": True,
+                    },
+                ],
+            },
+        ]
+
+        assert result == expected

@@ -601,3 +601,14 @@ def bpmn_xml_inclusive_gateway():
     """BPMN XML with inclusive gateway with default branch."""
     return load_bpmn("inclusive_gateway.bpmn")
 
+
+@pytest.fixture
+def bpmn_xml_inclusive_next():
+    """BPMN XML where inclusive gateway branch loops back to an earlier task."""
+    return load_bpmn("inclusive_next.bpmn")
+
+
+@pytest.fixture
+def bpmn_xml_parallel_gateway_no_join():
+    """BPMN XML with a parallel gateway missing a matching join gateway."""
+    return load_bpmn("parallel_gateway_no_join.bpmn")

@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 from collections import deque
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from bpmn_assistant.core.enums import BPMNElementType
 
@@ -69,149 +69,136 @@ class BpmnJsonGenerator:
         visited.add(current_id)
 
         current_element = self.elements[current_id]
-        result = [current_element]
 
+        handler = self._get_gateway_handler(current_element["type"])
+        if handler:
+            return handler(current_id, stop_at, visited)
+
+        result = [current_element]
         outgoing_flows = self._get_outgoing_flows(current_id)
 
-        if current_element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
-            gateway = current_element.copy()
-            gateway["branches"] = []
-            gateway["has_join"] = False
-
-            common_branch_endpoint = self._find_common_branch_endpoint(current_id)
-            next_element = None
-
-            # If the common endpoint is an exclusive gateway, is means this gateway has a join
-            if common_branch_endpoint and self._is_exclusive_gateway(
-                common_branch_endpoint
-            ):
-                gateway["has_join"] = True
-
-                # Retrieve outgoing flows to determine the next element after the join
-                join_outgoing_flows = self._get_outgoing_flows(common_branch_endpoint)
-
-                # Validate that the join gateway has exactly one outgoing flow
-                if len(join_outgoing_flows) != 1:
-                    raise ValueError(
-                        "Join gateway should have exactly one outgoing flow"
-                    )
-
-                next_element = join_outgoing_flows[0]["target"]
-            else:
-                next_element = common_branch_endpoint
-
-            # Build the branches of the exclusive gateway
-            for flow in outgoing_flows:
-                branch_path = self._build_structure_recursive(
-                    flow["target"],
-                    stop_at=common_branch_endpoint,
-                    visited=visited,
-                )
-
-                branch = self._build_eg_branch(
-                    branch_path, common_branch_endpoint, flow
-                )
-
-                gateway["branches"].append(branch)
-
-            result = [gateway]
-
-            # Continue building the structure from the element after the gateway
-            if next_element:
-                result.extend(
-                    self._build_structure_recursive(next_element, stop_at, visited)
-                )
-
-        elif current_element["type"] == BPMNElementType.INCLUSIVE_GATEWAY.value:
-            gateway = current_element.copy()
-            gateway["branches"] = []
-            gateway["has_join"] = False
-
-            common_branch_endpoint = self._find_common_branch_endpoint(current_id)
-            next_element = None
-
-            # If the common endpoint is an inclusive gateway, it means this gateway has a join
-            if common_branch_endpoint and self._is_inclusive_gateway(
-                common_branch_endpoint
-            ):
-                gateway["has_join"] = True
-
-                # Retrieve outgoing flows to determine the next element after the join
-                join_outgoing_flows = self._get_outgoing_flows(common_branch_endpoint)
-
-                # Validate that the join gateway has exactly one outgoing flow
-                if len(join_outgoing_flows) != 1:
-                    raise ValueError(
-                        "Join gateway should have exactly one outgoing flow"
-                    )
-
-                next_element = join_outgoing_flows[0]["target"]
-            else:
-                next_element = common_branch_endpoint
-
-            # Get the default flow ID if present
-            default_flow_id = gateway.get("default_flow")
-
-            # Build the branches of the inclusive gateway
-            for flow in outgoing_flows:
-                branch_path = self._build_structure_recursive(
-                    flow["target"],
-                    stop_at=common_branch_endpoint,
-                    visited=visited,
-                )
-
-                branch = self._build_ig_branch(
-                    branch_path, common_branch_endpoint, flow, default_flow_id
-                )
-
-                gateway["branches"].append(branch)
-
-            # Remove default_flow from gateway as it's stored in branches
-            gateway.pop("default_flow", None)
-
-            result = [gateway]
-
-            # Continue building the structure from the element after the gateway
-            if next_element:
-                result.extend(
-                    self._build_structure_recursive(next_element, stop_at, visited)
-                )
-
-        elif current_element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
-            gateway = current_element.copy()
-            gateway["branches"] = []
-
-            join_element = self._find_common_branch_endpoint(current_id)
-
-            if (
-                not join_element
-                or not self._is_parallel_gateway(join_element)
-                or len(self._get_outgoing_flows(join_element)) != 1
-            ):
-                raise ValueError(
-                    "Parallel gateway must have a corresponding join gateway"
-                )
-
-            # Build the branches of the parallel gateway up to the join gateway
-            for flow in outgoing_flows:
-                branch = self._build_structure_recursive(
-                    flow["target"], stop_at=join_element, visited=visited.copy()
-                )
-                gateway["branches"].append(branch)
-
-            result = [gateway]
-
-            # Continue building the process from the element after the join gateway
-            join_outgoing_flows = self._get_outgoing_flows(join_element)
-            next_element = join_outgoing_flows[0]["target"]
-            result.extend(
-                self._build_structure_recursive(next_element, stop_at, visited)
-            )
-
-        elif len(outgoing_flows) == 1:
+        if len(outgoing_flows) == 1:
             next_id = outgoing_flows[0]["target"]
             result.extend(self._build_structure_recursive(next_id, stop_at, visited))
 
+        return result
+
+    def _build_exclusive_gateway(
+        self,
+        gateway_id: str,
+        stop_at: Optional[str],
+        visited: set[str],
+    ) -> list[dict[str, Any]]:
+        """Build the structure produced when traversing an exclusive gateway and its branches."""
+        gateway = self.elements[gateway_id].copy()
+        gateway["branches"] = []
+        gateway["has_join"] = False
+
+        outgoing_flows = self._get_outgoing_flows(gateway_id)
+        common_branch_endpoint = self._find_common_branch_endpoint(gateway_id)
+        next_element = None
+
+        if common_branch_endpoint and self._is_exclusive_gateway(common_branch_endpoint):
+            gateway["has_join"] = True
+            join_outgoing_flows = self._get_outgoing_flows(common_branch_endpoint)
+            if len(join_outgoing_flows) != 1:
+                raise ValueError("Join gateway should have exactly one outgoing flow")
+            next_element = join_outgoing_flows[0]["target"]
+        else:
+            next_element = common_branch_endpoint
+
+        for flow in outgoing_flows:
+            branch_path = self._build_structure_recursive(
+                flow["target"],
+                stop_at=common_branch_endpoint,
+                visited=visited,
+            )
+            branch = self._build_eg_branch(branch_path, common_branch_endpoint, flow)
+            gateway["branches"].append(branch)
+
+        result = [gateway]
+        if next_element:
+            result.extend(
+                self._build_structure_recursive(next_element, stop_at, visited)
+            )
+        return result
+
+    def _build_inclusive_gateway(
+        self,
+        gateway_id: str,
+        stop_at: Optional[str],
+        visited: set[str],
+    ) -> list[dict[str, Any]]:
+        """Build the structure produced when traversing an inclusive gateway and its branches."""
+        gateway = self.elements[gateway_id].copy()
+        gateway["branches"] = []
+        gateway["has_join"] = False
+
+        outgoing_flows = self._get_outgoing_flows(gateway_id)
+        common_branch_endpoint = self._find_common_branch_endpoint(gateway_id)
+        next_element = None
+
+        if common_branch_endpoint and self._is_inclusive_gateway(common_branch_endpoint):
+            gateway["has_join"] = True
+            join_outgoing_flows = self._get_outgoing_flows(common_branch_endpoint)
+            if len(join_outgoing_flows) != 1:
+                raise ValueError("Join gateway should have exactly one outgoing flow")
+            next_element = join_outgoing_flows[0]["target"]
+        else:
+            next_element = common_branch_endpoint
+
+        default_flow_id = gateway.get("default_flow")
+
+        for flow in outgoing_flows:
+            branch_path = self._build_structure_recursive(
+                flow["target"],
+                stop_at=common_branch_endpoint,
+                visited=visited,
+            )
+            branch = self._build_ig_branch(
+                branch_path, common_branch_endpoint, flow, default_flow_id
+            )
+            gateway["branches"].append(branch)
+
+        gateway.pop("default_flow", None)
+
+        result = [gateway]
+        if next_element:
+            result.extend(
+                self._build_structure_recursive(next_element, stop_at, visited)
+            )
+        return result
+
+    def _build_parallel_gateway(
+        self,
+        gateway_id: str,
+        stop_at: Optional[str],
+        visited: set[str],
+    ) -> list[dict[str, Any]]:
+        """Assemble the parallel gateway with each branch expanded up to its matching join."""
+        gateway = self.elements[gateway_id].copy()
+        gateway["branches"] = []
+
+        outgoing_flows = self._get_outgoing_flows(gateway_id)
+        join_element = self._find_common_branch_endpoint(gateway_id)
+
+        if (
+            not join_element
+            or not self._is_parallel_gateway(join_element)
+            or len(self._get_outgoing_flows(join_element)) != 1
+        ):
+            raise ValueError("Parallel gateway must have a corresponding join gateway")
+
+        for flow in outgoing_flows:
+            branch = self._build_structure_recursive(
+                flow["target"], stop_at=join_element, visited=visited.copy()
+            )
+            gateway["branches"].append(branch)
+
+        result = [gateway]
+        join_outgoing_flows = self._get_outgoing_flows(join_element)
+        next_element = join_outgoing_flows[0]["target"]
+        result.extend(self._build_structure_recursive(next_element, stop_at, visited))
         return result
 
     def _build_ig_branch(
@@ -242,91 +229,12 @@ class BpmnJsonGenerator:
         if not is_default:
             branch["condition"] = flow["condition"]
 
-        if not branch_path:
-            if flow["target"] != common_branch_endpoint:
-                branch["next"] = flow["target"]
-        else:
-            last_element = branch_path[-1]
-            last_element_outgoing_flows = self._get_outgoing_flows(last_element["id"])
-
-            if last_element["type"] == BPMNElementType.INCLUSIVE_GATEWAY.value:
-                if not last_element["has_join"]:
-                    # We need to add 'next' to each of the branches
-                    for sub_branch in last_element["branches"]:
-                        sub_flow = next(
-                            (flow for flow in last_element_outgoing_flows
-                             if flow["condition"] == sub_branch.get("condition")),
-                            None
-                        )
-                        if sub_flow:
-                            sub_default_flow_id = last_element.get("default_flow")
-                            sub_branch_result = self._build_ig_branch(
-                                sub_branch["path"], common_branch_endpoint, sub_flow, sub_default_flow_id
-                            )
-                            sub_branch.update(sub_branch_result)
-                else:
-                    join_id = self._find_common_branch_endpoint(last_element["id"])
-
-                    if join_id is None:
-                        raise ValueError("Inclusive gateway should have a corresponding join gateway")
-
-                    join_outgoing_flows = self._get_outgoing_flows(join_id)
-
-                    if len(join_outgoing_flows) != 1:
-                        raise ValueError("Join gateway should have one outgoing flow")
-
-                    join_target = join_outgoing_flows[0]["target"]
-                    if join_target != common_branch_endpoint:
-                        branch["next"] = join_target
-
-            elif last_element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
-                if not last_element["has_join"]:
-                    # We need to add 'next' to each of the branches
-                    for sub_branch in last_element["branches"]:
-                        sub_flow = next(
-                            flow
-                            for flow in last_element_outgoing_flows
-                            if flow["condition"] == sub_branch["condition"]
-                        )
-                        sub_branch_result = self._build_eg_branch(
-                            sub_branch["path"], common_branch_endpoint, sub_flow
-                        )
-                        sub_branch.update(sub_branch_result)
-                else:
-                    join_id = self._find_common_branch_endpoint(last_element["id"])
-
-                    if join_id is None:
-                        raise ValueError("Exclusive gateway should have a corresponding join gateway")
-
-                    join_outgoing_flows = self._get_outgoing_flows(join_id)
-
-                    if len(join_outgoing_flows) != 1:
-                        raise ValueError("Join gateway should have one outgoing flow")
-
-                    join_target = join_outgoing_flows[0]["target"]
-                    if join_target != common_branch_endpoint:
-                        branch["next"] = join_target
-
-            elif last_element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
-                join_id = self._find_common_branch_endpoint(last_element["id"])
-
-                if join_id is None:
-                    raise ValueError("Parallel gateway should have a corresponding join gateway")
-
-                join_outgoing_flows = self._get_outgoing_flows(join_id)
-
-                if len(join_outgoing_flows) != 1:
-                    raise ValueError("Join gateway should have one outgoing flow")
-
-                join_target = join_outgoing_flows[0]["target"]
-                if join_target != common_branch_endpoint:
-                    branch["next"] = join_target
-
-            elif (
-                len(last_element_outgoing_flows) == 1
-                and last_element_outgoing_flows[0]["target"] != common_branch_endpoint
-            ):
-                branch["next"] = last_element_outgoing_flows[0]["target"]
+        self._populate_branch_transitions(
+            branch=branch,
+            branch_path=branch_path,
+            flow=flow,
+            common_branch_endpoint=common_branch_endpoint,
+        )
 
         return branch
 
@@ -350,63 +258,130 @@ class BpmnJsonGenerator:
             "path": branch_path,
         }
 
+        self._populate_branch_transitions(
+            branch=branch,
+            branch_path=branch_path,
+            flow=flow,
+            common_branch_endpoint=common_branch_endpoint,
+        )
+
+        return branch
+
+    def _populate_branch_transitions(
+        self,
+        *,
+        branch: dict[str, Any],
+        branch_path: list[dict[str, Any]],
+        flow: dict[str, str],
+        common_branch_endpoint: Optional[str],
+    ) -> None:
+        """Populate `next` pointers for a branch, recursing into nested gateways as needed."""
         if not branch_path:
             if flow["target"] != common_branch_endpoint:
                 branch["next"] = flow["target"]
-        else:
-            last_element = branch_path[-1]
-            last_element_outgoing_flows = self._get_outgoing_flows(last_element["id"])
+            return
 
-            if last_element["type"] == BPMNElementType.EXCLUSIVE_GATEWAY.value:
-                if not last_element["has_join"]:
-                    # We need to add 'next' to each of the branches
-                    for sub_branch in last_element["branches"]:
-                        sub_flow = next(
-                            flow
-                            for flow in last_element_outgoing_flows
-                            if flow["condition"] == sub_branch["condition"]
-                        )
-                        sub_branch_result = self._build_eg_branch(
-                            sub_branch["path"], common_branch_endpoint, sub_flow
-                        )
-                        sub_branch.update(sub_branch_result)
-                else:
-                    join_id = self._find_common_branch_endpoint(last_element["id"])
+        last_element = branch_path[-1]
+        last_outgoing_flows = self._get_outgoing_flows(last_element["id"])
 
-                    if join_id is None:
-                        raise ValueError("Exclusive gateway should have a corresponding join gateway")
+        if last_element["type"] in {
+            BPMNElementType.INCLUSIVE_GATEWAY.value,
+            BPMNElementType.EXCLUSIVE_GATEWAY.value,
+        }:
+            self._handle_nested_gateway_branch(
+                branch=branch,
+                last_element=last_element,
+                last_outgoing_flows=last_outgoing_flows,
+                common_branch_endpoint=common_branch_endpoint,
+            )
+        elif last_element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
+            join_id = self._find_common_branch_endpoint(last_element["id"])
+            if join_id is None:
+                raise ValueError("Parallel gateway should have a corresponding join gateway")
+            join_outgoing_flows = self._get_outgoing_flows(join_id)
+            if len(join_outgoing_flows) != 1:
+                raise ValueError("Join gateway should have one outgoing flow")
+            join_target = join_outgoing_flows[0]["target"]
+            if join_target != common_branch_endpoint:
+                branch["next"] = join_target
+        elif (
+            len(last_outgoing_flows) == 1
+            and last_outgoing_flows[0]["target"] != common_branch_endpoint
+        ):
+            branch["next"] = last_outgoing_flows[0]["target"]
 
-                    join_outgoing_flows = self._get_outgoing_flows(join_id)
+    def _handle_nested_gateway_branch(
+        self,
+        *,
+        branch: dict[str, Any],
+        last_element: dict[str, Any],
+        last_outgoing_flows: list[dict[str, str]],
+        common_branch_endpoint: Optional[str],
+    ) -> None:
+        if not last_element.get("has_join"):
+            for sub_branch in last_element["branches"]:
+                sub_flow = self._get_flow_for_branch(
+                    last_element["id"], sub_branch, last_outgoing_flows
+                )
+                if sub_flow is None:
+                    raise ValueError(
+                        f"Unable to resolve sequence flow for branch originating from {last_element['id']}"
+                    )
+                self._populate_branch_transitions(
+                    branch=sub_branch,
+                    branch_path=sub_branch.get("path", []),
+                    flow=sub_flow,
+                    common_branch_endpoint=common_branch_endpoint,
+                )
+            return
 
-                    if len(join_outgoing_flows) != 1:
-                        raise ValueError("Join gateway should have one outgoing flow")
+        join_id = self._find_common_branch_endpoint(last_element["id"])
+        error_messages = {
+            BPMNElementType.EXCLUSIVE_GATEWAY.value: "Exclusive gateway should have a corresponding join gateway",
+            BPMNElementType.INCLUSIVE_GATEWAY.value: "Inclusive gateway should have a corresponding join gateway",
+        }
+        if join_id is None:
+            raise ValueError(error_messages[last_element["type"]])
 
-                    join_target = join_outgoing_flows[0]["target"]
-                    if join_target != common_branch_endpoint:
-                        branch["next"] = join_target
+        join_outgoing_flows = self._get_outgoing_flows(join_id)
+        if len(join_outgoing_flows) != 1:
+            raise ValueError("Join gateway should have one outgoing flow")
 
-            elif last_element["type"] == BPMNElementType.PARALLEL_GATEWAY.value:
-                join_id = self._find_common_branch_endpoint(last_element["id"])
+        join_target = join_outgoing_flows[0]["target"]
+        if join_target != common_branch_endpoint:
+            branch["next"] = join_target
 
-                if join_id is None:
-                    raise ValueError("Parallel gateway should have a corresponding join gateway")
+    def _get_flow_for_branch(
+        self,
+        gateway_id: str,
+        branch: dict[str, Any],
+        outgoing_flows: Optional[list[dict[str, str]]] = None,
+    ) -> Optional[dict[str, str]]:
+        flows = outgoing_flows or self._get_outgoing_flows(gateway_id)
+        branch_condition = branch.get("condition")
+        if branch_condition is not None:
+            for flow in flows:
+                if flow["condition"] == branch_condition:
+                    return flow
 
-                join_outgoing_flows = self._get_outgoing_flows(join_id)
+        if branch.get("is_default"):
+            default_flow_id = self.elements[gateway_id].get("default_flow")
+            if default_flow_id:
+                for flow in flows:
+                    if flow["id"] == default_flow_id:
+                        return flow
 
-                if len(join_outgoing_flows) != 1:
-                    raise ValueError("Join gateway should have one outgoing flow")
+        branch_path = branch.get("path", [])
+        if branch_path:
+            target_id = branch_path[0]["id"]
+            for flow in flows:
+                if flow["target"] == target_id:
+                    return flow
 
-                join_target = join_outgoing_flows[0]["target"]
-                if join_target != common_branch_endpoint:
-                    branch["next"] = join_target
+        if len(flows) == 1:
+            return flows[0]
 
-            elif (
-                len(last_element_outgoing_flows) == 1
-                and last_element_outgoing_flows[0]["target"] != common_branch_endpoint
-            ):
-                branch["next"] = last_element_outgoing_flows[0]["target"]
-
-        return branch
+        return None
 
     def _is_parallel_gateway(self, gateway_id: str) -> bool:
         return (
@@ -479,6 +454,17 @@ class BpmnJsonGenerator:
         paths = [path[1:] for path in paths]
 
         return paths
+
+    def _get_gateway_handler(
+        self, element_type: str
+    ) -> Optional[Callable[[str, Optional[str], set[str]], list[dict[str, Any]]]]:
+        """Return the handler responsible for building the structure of the given gateway type."""
+        handlers: dict[str, Callable[[str, Optional[str], set[str]], list[dict[str, Any]]]] = {
+            BPMNElementType.EXCLUSIVE_GATEWAY.value: self._build_exclusive_gateway,
+            BPMNElementType.INCLUSIVE_GATEWAY.value: self._build_inclusive_gateway,
+            BPMNElementType.PARALLEL_GATEWAY.value: self._build_parallel_gateway,
+        }
+        return handlers.get(element_type)
 
     def _get_elements_and_flows(self, process: ET.Element):
         labeled_elements = {
