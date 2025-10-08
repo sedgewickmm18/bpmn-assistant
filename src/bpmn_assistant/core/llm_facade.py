@@ -37,6 +37,24 @@ class LLMFacade:
 
         self.messages = self.provider.get_initial_messages()
 
+    def _append_user_message(
+        self,
+        prompt: str,
+        images: list[MessageImage] | None = None,
+    ) -> None:
+        """Append a user message to the conversation, handling optional images."""
+        if images:
+            content = [{"type": "text", "text": prompt}]
+            for image in images:
+                content.append(
+                    {"type": "image_url", "image_url": {"url": image.preview}}
+                )
+            message = {"role": MessageRole.USER.value, "content": content}
+        else:
+            message = {"role": MessageRole.USER.value, "content": prompt}
+
+        self.messages.append(message)
+
     def call(
         self,
         prompt: str,
@@ -56,18 +74,7 @@ class LLMFacade:
         """
         logger.info(f"Calling LLM: {self.model}")
 
-        # If images are provided, use vision format (content array)
-        if images and len(images) > 0:
-            content = [{"type": "text", "text": prompt}]
-            for image in images:
-                content.append({
-                    "type": "image_url",
-                    "image_url": {"url": image.preview},
-                })
-            self.messages.append({"role": MessageRole.USER.value, "content": content})
-        else:
-            # Standard text-only format
-            self.messages.append({"role": MessageRole.USER.value, "content": prompt})
+        self._append_user_message(prompt, images)
 
         response = self.provider.call(
             self.model,
@@ -104,17 +111,6 @@ class LLMFacade:
         """
         logger.info(f"Calling LLM (streaming): {self.model}")
 
-        # If images are provided, use vision format (content array)
-        if images and len(images) > 0:
-            content = [{"type": "text", "text": prompt}]
-            for image in images:
-                content.append({
-                    "type": "image_url",
-                    "image_url": {"url": image.preview},
-                })
-            self.messages.append({"role": MessageRole.USER.value, "content": content})
-        else:
-            # Standard text-only format
-            self.messages.append({"role": MessageRole.USER.value, "content": prompt})
+        self._append_user_message(prompt, images)
 
         return self.provider.stream(self.model, self.messages, max_tokens, temperature)
