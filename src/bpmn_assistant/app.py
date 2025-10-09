@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse, Response, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from bpmn_assistant.api.requests import (
@@ -52,13 +52,7 @@ bpmn_xml_generator = BpmnXmlGenerator()
 
 @app.get("/")
 async def health_check():
-    """Health check endpoint for Render"""
     return {"status": "ok"}
-
-
-@app.head("/health")
-def health_head():
-    return Response(status_code=200)
 
 
 @app.post("/bpmn_to_json")
