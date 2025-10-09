@@ -1,8 +1,8 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
-import { RouterView } from "vue-router";
-import { isHostedVersion } from "./config";
-import { REMOTE_SERVICES, warmupServices } from "./utils/serviceWarmup";
+import { computed, onMounted, reactive, ref } from 'vue';
+import { RouterView } from 'vue-router';
+import { isHostedVersion } from './config';
+import { REMOTE_SERVICES, warmupServices } from './utils/serviceWarmup';
 
 const buildInitialStatus = (service, ready = !isHostedVersion) => ({
   id: service.id,
@@ -30,39 +30,43 @@ const isWarmupRunning = ref(isHostedVersion);
 
 const serviceStatusList = computed(() => Object.values(serviceStatuses));
 const allServicesResponded = computed(() =>
-  serviceStatusList.value.every((status) => status.hasResponded),
+  serviceStatusList.value.every((status) => status.hasResponded)
 );
 
 const overlayVisible = computed(
-  () => isHostedVersion && isBlockingWarmup.value && !allServicesResponded.value,
+  () => isHostedVersion && isBlockingWarmup.value && !allServicesResponded.value
 );
 
 const warmupTitle = computed(() =>
-  warmupTimedOut.value ? "Timed out while waking services" : "Waking up services",
+  warmupTimedOut.value
+    ? 'Timed out while waking services'
+    : 'Waking up services'
 );
 
 const refreshDisabled = computed(() => isWarmupRunning.value);
-const refreshLabel = computed(() => (isWarmupRunning.value ? "Refreshing..." : "Refresh"));
+const refreshLabel = computed(() =>
+  isWarmupRunning.value ? 'Refreshing...' : 'Refresh'
+);
 
 const getStatusState = (status) => {
   if (status.ok) {
-    return "ready";
+    return 'ready';
   }
   if (status.hasResponded) {
-    return "responded";
+    return 'responded';
   }
-  return "waiting";
+  return 'waiting';
 };
 
 const getStatusText = (status) => {
   const state = getStatusState(status);
-  if (state === "ready") {
-    return "Ready";
+  if (state === 'ready') {
+    return 'Ready';
   }
-  if (state === "responded") {
-    return "Responded";
+  if (state === 'responded') {
+    return 'Responded';
   }
-  return "Waiting";
+  return 'Waiting';
 };
 
 const getStatusClass = (status) => `status-${getStatusState(status)}`;
@@ -128,8 +132,10 @@ onMounted(() => {
     <div v-if="overlayVisible" class="service-warmup-overlay">
       <div class="service-warmup-card">
         <div class="service-warmup-header">
-          <span class="warmup-title">{{ warmupTitle }}</span>
-          <span class="warmup-subtitle">Preparing hosted services (up to 90 seconds)</span>
+          <div class="warmup-title">{{ warmupTitle }}</div>
+          <div class="warmup-subtitle">
+            Preparing hosted services (can take up to 60 seconds)
+          </div>
         </div>
         <div class="service-status-list">
           <div
@@ -151,7 +157,11 @@ onMounted(() => {
     <div v-if="isHostedVersion" class="service-status-panel">
       <div class="panel-header">
         <span class="panel-title">Service status</span>
-        <button class="refresh-button" :disabled="refreshDisabled" @click="handleRefresh">
+        <button
+          class="refresh-button"
+          :disabled="refreshDisabled"
+          @click="handleRefresh"
+        >
           {{ refreshLabel }}
         </button>
       </div>
