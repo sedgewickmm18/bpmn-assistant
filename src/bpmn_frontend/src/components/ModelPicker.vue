@@ -24,11 +24,11 @@
 </template>
 
 <script>
-import { bpmnAssistantUrl } from '../config';
+import { bpmnAssistantUrl, isHostedVersion } from '../config';
 import { getApiKeys } from '../utils/apiKeys';
 
 const Models = Object.freeze({
-  GPT_5: 'gpt-5',
+  GPT_5_1: 'gpt-5.1',
   GPT_5_MINI: 'gpt-5-mini',
   GPT_4_1: 'gpt-4.1',
   SONNET_4_5: 'claude-sonnet-4-5-20250929',
@@ -60,7 +60,7 @@ export default {
     return {
       selectedModel: '',
       models: [
-        { value: Models.GPT_5, title: 'GPT-5', provider: Providers.OPENAI },
+        { value: Models.GPT_5_1, title: 'GPT-5.1', provider: Providers.OPENAI },
         {
           value: Models.GPT_5_MINI,
           title: 'GPT-5 mini',
@@ -136,9 +136,8 @@ export default {
     async fetchAvailableProviders() {
       try {
         const apiKeys = getApiKeys();
-        const isProduction = window.location.hostname !== 'localhost';
 
-        if (isProduction) {
+        if (isHostedVersion) {
           // Production mode: determine providers from user-entered keys only
           this.availableProviders = [];
           if (apiKeys.openai_api_key) {

@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "bpmn_assistant"
 version = "0.1.0"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "==3.12.*"
 license = { text = "MIT" }
 dependencies = [
     "anthropic>=0.40.0",

@@ -87,7 +87,7 @@ Additional prerequisites for local deployment:
 
 ### OpenAI
 
-* GPT-5
+* GPT-5.1
 * GPT-5 mini
 * GPT-4.1 (recommended)
 

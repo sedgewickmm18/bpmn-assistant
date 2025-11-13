@@ -266,7 +266,7 @@ export default {
   computed: {
     isOpenAIModel() {
       return (
-        this.selectedModel === 'gpt-5' ||
+        this.selectedModel === 'gpt-5.1' ||
         this.selectedModel === 'gpt-5-mini' ||
         this.selectedModel === 'gpt-4.1'
       );

@@ -65,7 +65,7 @@ class LiteLLMProvider(LLMProvider):
         params["max_tokens"] = max_tokens
 
         # GPT-5 models only support temperature=1
-        if model in [OpenAIModels.GPT_5.value, OpenAIModels.GPT_5_MINI.value]:
+        if model in [OpenAIModels.GPT_5_1.value, OpenAIModels.GPT_5_MINI.value]:
             params["temperature"] = 1
         else:
             params["temperature"] = temperature
@@ -108,7 +108,7 @@ class LiteLLMProvider(LLMProvider):
         self._validate_vision_support(model, messages)
 
         # GPT-5 models only support temperature=1
-        if model in [OpenAIModels.GPT_5.value, OpenAIModels.GPT_5_MINI.value]:
+        if model in [OpenAIModels.GPT_5_1.value, OpenAIModels.GPT_5_MINI.value]:
             temperature = 1
 
         response = completion(
