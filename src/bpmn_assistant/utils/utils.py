@@ -1,6 +1,12 @@
 import os
+import json
 
 from dotenv import load_dotenv
+
+import litellm
+
+for mod in litellm.model_list_set:
+    if mod.startswith('olla'): print(mod)
 
 from bpmn_assistant.core import LLMFacade, MessageItem
 from bpmn_assistant.core.enums import (
@@ -64,20 +70,34 @@ def get_available_providers() -> dict:
     gemini_api_key = os.getenv("GEMINI_API_KEY")
     fireworks_api_key = os.getenv("FIREWORKS_AI_API_KEY")
 
-    openai_present = openai_api_key is not None and len(openai_api_key) > 0
+    if openai_api_key is not None and len(openai_api_key) > 0:
+        openai_present = []
+        for mod in litellm.model_list_set:
+            if mod.startswith("openai"):
+                openai_present.append(mod)
+    else: openai_present = False
+    if is_port_in_use(11434):
+        ollama_present = []
+        for mod in litellm.model_list_set:
+            if mod.startswith("ollama_chat/"):
+                ollama_present.append(mod)
+    else: ollama_present = False
+
+    #openai_present = openai_api_key is not None and len(openai_api_key) > 0
     anthropic_present = anthropic_api_key is not None and len(anthropic_api_key) > 0
     google_present = gemini_api_key is not None and len(gemini_api_key) > 0
     fireworks_ai_present = fireworks_api_key is not None and len(fireworks_api_key) > 0
-    ollama_present = is_port_in_use(11434)
+    #ollama_present = is_port_in_use(11434)
     #openai_present |= ollama_present  # TODO make ollama a separate provider
 
-    return {
+    dct = { 
+        "ollama" : ollama_present,
         "openai": openai_present,
         "anthropic": anthropic_present,
         "google": google_present,
         "fireworks_ai": fireworks_ai_present,
-        "ollama" : ollama_present,
     }
+    return dct
 
 def is_port_in_use(port: int) -> bool:
     import socket

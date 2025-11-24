@@ -42,4 +42,4 @@ if __name__ == "__main__":
     }
 
     prompt = processor.render_template("respond_to_query.jinja2", **variables)
-    print(prompt)
+    #print(prompt)

@@ -11,6 +11,8 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "bpmn-js": "^17.9.1",
+    "cli": "^1.0.1",
+    "ollama": "^0.6.3",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3",
     "vuetify": "^3.6.12"

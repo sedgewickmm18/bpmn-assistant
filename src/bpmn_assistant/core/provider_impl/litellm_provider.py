@@ -5,6 +5,7 @@ import json_repair as json
 
 import os
 import re
+import datetime
 from typing import Any, Generator
 
 import litellm
@@ -22,11 +23,19 @@ from bpmn_assistant.core.enums.output_modes import OutputMode
 from bpmn_assistant.core.llm_provider import LLMProvider
 
 # make sure we select the right provider in litellm_core_utils/get_llm_provider_logic.py
-#  add granite4 to list of known models supported by ollama
-litellm.ollama_models.append('granite4')
-litellm.model_list.append('ollama')
+#  add ollama provided models on localhost to list of known models
+
+import ollama
+model_list = ollama.list().models
+for mod in model_list: 
+    litellm.ollama_models.append("ollama_chat/" + mod.model)
+    litellm.model_list.append("ollama_chat/" + mod.model)
+	
+
+#litellm.ollama_models.append('granite4')
+#litellm.model_list.append('ollama')
 litellm.model_list_set = set(litellm.model_list)
-#print('OLLAMA MODELS', litellm.ollama_models)
+print('OLLAMA MODELS', litellm.ollama_models)
 
 
 
@@ -56,6 +65,7 @@ class LiteLLMProvider(LLMProvider):
             params['api_base'] = 'http://0.0.0.0:11434'
             params['model'] = model
             params['api_key'] = 'sk-1234'
+            logger.info("Using ollama model " + str(model))
 
         if structured_output is not None or self.output_mode == OutputMode.JSON:
             params["response_format"] = {"type": "json_object"}
@@ -69,7 +79,10 @@ class LiteLLMProvider(LLMProvider):
             params["temperature"] = temperature
 
         #print('RESPONSE PARMS', params)
-        if True:
+        json_path = os.getenv("BPMN_LOG_JSON")
+        json_exists = os.getenv("BPMN_USE_EXISTING_JSON")
+
+        if json_exists is None:
             response = completion(**params)
 
             if not response.choices:
@@ -77,14 +90,13 @@ class LiteLLMProvider(LLMProvider):
                 raise Exception("Empty response from model")
 
             raw_output = response.choices[0].message.content
-            f = open("json.txt","w")
-            f.write(raw_output)
-            f.close()
+        
         else:
             f = open("json.txt")
             raw_output = f.read()
             f.close()
-        print('RETURNED', raw_output)
+
+        #print('RETURNED', raw_output)
 
         # TODO: make sure to strip think patterns for qwen3 and deepseek models run locally
         if model in [
@@ -106,6 +118,15 @@ class LiteLLMProvider(LLMProvider):
         if model.startswith('ollama'):
             raw_output = raw_output[raw_output.rfind('```json\n') + 8:raw_output.rfind('```\n')]
             #print('RETURNED after stripping', raw_output)
+
+        if json_path is not None:
+            f = open(json_path,"a")
+            f.write('Timestamp %s\n' % (datetime.datetime.now()))
+            f.write('```json\n')
+            f.write(raw_output)
+            f.write('```\n')
+            f.close()
+            
 
         return self._process_response(raw_output)
 
