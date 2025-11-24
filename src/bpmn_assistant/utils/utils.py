@@ -44,6 +44,9 @@ def get_llm_facade(model: str, output_mode: OutputMode = OutputMode.JSON, api_ke
     elif is_fireworks_ai_model(model):
         api_key = api_keys.get("fireworks_api_key") or os.getenv("FIREWORKS_AI_API_KEY")
         provider = Provider.FIREWORKS_AI
+    elif model.startswith('ollama'):
+        api_key='sk-3456'           # satisfy LiteLLM
+        provider = Provider.OLLAMA
     else:
         raise Exception("Invalid model")
 
@@ -85,13 +88,26 @@ def get_available_providers(api_keys: dict[str, str] | None = None) -> dict:
         google_present = bool(os.getenv("GEMINI_API_KEY"))
         fireworks_ai_present = bool(os.getenv("FIREWORKS_AI_API_KEY"))
 
+    ollama_present = is_port_in_use(11434)
+    #openai_present |= ollama_present  # TODO make ollama a separate provider
+
     return {
         "openai": openai_present,
         "anthropic": anthropic_present,
         "google": google_present,
         "fireworks_ai": fireworks_ai_present,
+        "ollama" : ollama_present,
     }
 
+def is_port_in_use(port: int) -> bool:
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        in_use = False
+        try:
+            in_use = s.connect_ex(('localhost', port)) == 0
+        except Exception as conexc:
+            pass
+        return in_use
 
 def replace_reasoning_model(model: str) -> str:
     """

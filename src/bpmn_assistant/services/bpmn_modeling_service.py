@@ -39,6 +39,7 @@ class BpmnModelingService:
             list: The BPMN process.
         """
 
+        logger.info('create_bpmn enter')
         prompt = self.prompt_processor.render_template(
             "create_bpmn.jinja2",
             message_history=message_history_to_string(message_history),
@@ -71,6 +72,8 @@ class BpmnModelingService:
             message += f" Last error from provider: {last_error}"
         raise Exception(message)
 
+        logger.info('create_bpmn leave')
+
     def edit_bpmn(
         self,
         llm_facade: LLMFacade,
@@ -79,10 +82,12 @@ class BpmnModelingService:
         message_history: list[MessageItem],
         images: list[MessageImage] | None = None,
     ) -> list:
+        logger.info('edit_bpmn enter')
         change_request = define_change_request(
             text_llm_facade, process, message_history, images=images
         )
 
         bpmn_editor_service = BpmnEditingService(llm_facade, process, change_request)
 
+        logger.info('edit_bpmn leave')
         return bpmn_editor_service.edit_bpmn()

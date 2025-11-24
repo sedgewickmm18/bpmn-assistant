@@ -46,6 +46,7 @@ const Providers = Object.freeze({
   ANTHROPIC: 'anthropic',
   GOOGLE: 'google',
   FIREWORKS_AI: 'fireworks_ai',
+  OLLAMA: 'ollama'
 });
 
 export default {
@@ -186,6 +187,8 @@ export default {
           this.onModelChange(Models.GEMINI_2_5_PRO);
         } else if (this.availableProviders.includes(Providers.FIREWORKS_AI)) {
           this.onModelChange(Models.DEEPSEEK_V3_1);
+        } else if (this.availableProviders.includes(Providers.OLLAMA)) {
+          this.onModelChange(Models.OLLAMA_GRANITE4);
         }
       } catch (error) {
         console.error('Error fetching available providers', error);

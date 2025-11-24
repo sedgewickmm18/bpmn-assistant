@@ -25,9 +25,12 @@ class BpmnEditingService:
         Returns:
             The updated BPMN process
         """
+        logger.info('edit_bpmn. enter')
+
         updated_process = self._apply_initial_edit()
         updated_process = self._apply_intermediate_edits(updated_process)
 
+        logger.info('edit_bpmn. leave')
         return updated_process
 
     def _apply_initial_edit(self, max_retries: int = 4) -> list:
