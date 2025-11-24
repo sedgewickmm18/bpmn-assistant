@@ -27,8 +27,8 @@
 import { bpmnAssistantUrl, isHostedVersion } from '../config';
 import { getApiKeys } from '../utils/apiKeys';
 
-import { ref, onMounted } from 'vue'
-import { Ollama } from 'ollama'
+import { Ollama } from 'ollama';
+import { ref, onMounted } from 'vue';
 
 const Models = Object.freeze({
   GPT_5_1: 'gpt-5.1',
@@ -41,7 +41,8 @@ const Models = Object.freeze({
   LLAMA_4_MAVERICK:
     'fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic',
   QWEN_3_235B: 'fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b',
-  DEEPSEEK_V3_1: 'fireworks_ai/accounts/fireworks/models/deepseek-v3p1-terminus',
+  DEEPSEEK_V3_1: 'fireworks_ai/accounts/fireworks/models/deepseek-v3p1-terminus'
+})
 
 const ollama = new Ollama({host: 'http://127.0.0.1:11434'})
 const Models2 = ref([])
@@ -197,19 +198,13 @@ export default {
           this.availableProviders = Object.keys(data).filter(
             (provider) => data[provider]
           );
+	      console.log(Object.values(data))
+	      this.availableModels = Object.values(data).filter((val) => val).flat()
         }
 
         // Notify parent if no providers available
         const hasProviders = this.availableProviders.length > 0;
         this.$parent.setHasAvailableProviders(hasProviders);
-
-        const data = await response.json();
-
-        this.availableProviders = Object.keys(data).filter(
-          (provider) => data[provider]
-        );
-	console.log(Object.values(data))
-	this.availableModels = Object.values(data).filter((val) => val).flat()
 
 	/*
         if (this.availableProviders.includes(Providers.OPENAI)) {
