@@ -9,7 +9,7 @@ dns.setDefaultResultOrder('verbatim')
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    origin: 'http://0.0.0.0:5173',
+    origin: 'http://localhost:5173',    ## no longer using 0.0.0.0 to avoid CORS issues
   }, 
   plugins: [
     vue(),

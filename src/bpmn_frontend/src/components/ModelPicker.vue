@@ -27,6 +27,9 @@
 import { bpmnAssistantUrl, isHostedVersion } from '../config';
 import { getApiKeys } from '../utils/apiKeys';
 
+import { ref, onMounted } from 'vue'
+import { Ollama } from 'ollama'
+
 const Models = Object.freeze({
   GPT_5_1: 'gpt-5.1',
   GPT_5_MINI: 'gpt-5-mini',
@@ -39,7 +42,19 @@ const Models = Object.freeze({
     'fireworks_ai/accounts/fireworks/models/llama4-maverick-instruct-basic',
   QWEN_3_235B: 'fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b',
   DEEPSEEK_V3_1: 'fireworks_ai/accounts/fireworks/models/deepseek-v3p1-terminus',
-});
+
+const ollama = new Ollama({host: 'http://127.0.0.1:11434'})
+const Models2 = ref([])
+const loadItems = async () => {
+  try {
+    const response = await ollama.list()
+    Models2.value = response.data
+  } catch (err) {
+    console.error("Failed to load items:", err)
+  }
+}
+console.log(Models2)
+
 
 const Providers = Object.freeze({
   OPENAI: 'openai',
@@ -60,6 +75,7 @@ export default {
   data() {
     return {
       selectedModel: '',
+/*
       models: [
         { value: Models.GPT_5_1, title: 'GPT-5.1', provider: Providers.OPENAI },
         {
@@ -102,12 +118,19 @@ export default {
           value: Models.DEEPSEEK_V3_1,
           title: 'Deepseek V3.1',
           provider: Providers.FIREWORKS_AI,
+        {
+          value: Models.OLLAMA_GRANITE4,
+          title: 'ollama_chat/granite4',
+          provider: Providers.OLLAMA
         },
       ],
+*/
+      availableModels: [],
       availableProviders: [],
     };
   },
-  computed: {
+/*
+  compute: {
     availableModels() {
       let filteredModels = this.models.filter((model) =>
         this.availableProviders.includes(model.provider)
@@ -129,6 +152,7 @@ export default {
       );
     },
   },
+*/
   methods: {
     onModelChange(model) {
       this.selectedModel = model;
@@ -179,6 +203,15 @@ export default {
         const hasProviders = this.availableProviders.length > 0;
         this.$parent.setHasAvailableProviders(hasProviders);
 
+        const data = await response.json();
+
+        this.availableProviders = Object.keys(data).filter(
+          (provider) => data[provider]
+        );
+	console.log(Object.values(data))
+	this.availableModels = Object.values(data).filter((val) => val).flat()
+
+	/*
         if (this.availableProviders.includes(Providers.OPENAI)) {
           this.onModelChange(Models.GPT_4_1);
         } else if (this.availableProviders.includes(Providers.ANTHROPIC)) {
@@ -190,6 +223,7 @@ export default {
         } else if (this.availableProviders.includes(Providers.OLLAMA)) {
           this.onModelChange(Models.OLLAMA_GRANITE4);
         }
+	*/
       } catch (error) {
         console.error('Error fetching available providers', error);
       }

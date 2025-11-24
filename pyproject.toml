@@ -9,6 +9,7 @@ readme = "README.md"
 requires-python = "==3.12.*"
 license = { text = "MIT" }
 dependencies = [
+    "aiohappyeyeballs>=2.6.1",
     "anthropic>=0.40.0",
     "fastapi>=0.115.6",
     "jinja2>=3.1.5",
@@ -17,11 +18,17 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "json_repair>=0.49",
     "uvicorn>=0.33.0",
+    "ollama"
 ]
 
 [tool.setuptools]
+#include-package-data = true
 package-dir = { "" = "src" }
+#packages = ["bpmn_assistant", "bpmn_assistant.api", "bpmn_assistant.config", "bpmn_assistant.core", "bpmn_assistant.core.enums", "bpmn_assistant.core.provider_impl", "bpmn_assistant.prompts", "bpmn_assistant.services", "bpmn_assistant.services.process_editing", "bpmn_assistant.utils"]
 packages = ["bpmn_assistant"]
+
+#[tool.setuptools.package-data]
+#"bpmn_assistant" = ["*.jinja2"]
 
 [dependency-groups]
 dev = [

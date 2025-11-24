@@ -1,8 +1,16 @@
 import os
+import json
 
 from dotenv import load_dotenv
 
+
+import litellm
+
+for mod in litellm.model_list_set:
+    if mod.startswith('olla'): print(mod)
+
 from bpmn_assistant.core import LLMFacade, MessageItem, MessageImage
+
 from bpmn_assistant.core.enums import (
     AnthropicModels,
     BPMNElementType,
@@ -88,16 +96,29 @@ def get_available_providers(api_keys: dict[str, str] | None = None) -> dict:
         google_present = bool(os.getenv("GEMINI_API_KEY"))
         fireworks_ai_present = bool(os.getenv("FIREWORKS_AI_API_KEY"))
 
-    ollama_present = is_port_in_use(11434)
-    #openai_present |= ollama_present  # TODO make ollama a separate provider
+    if openai_present:
+        openai_present = []
+        for mod in litellm.model_list_set:
+            if mod.startswith("openai"):
+                openai_present.append(mod)
+    else: openai_present = False
 
-    return {
+    if is_port_in_use(11434):  # ollama is present, get provided models
+        ollama_present = []
+        for mod in litellm.model_list_set:
+            if mod.startswith("ollama_chat/"):
+                ollama_present.append(mod)
+    else: ollama_present = False
+
+    # returns a JSON structure with providers *and* provided models
+    dct = { 
+        "ollama" : ollama_present,
         "openai": openai_present,
         "anthropic": anthropic_present,
         "google": google_present,
         "fireworks_ai": fireworks_ai_present,
-        "ollama" : ollama_present,
     }
+    return dct
 
 def is_port_in_use(port: int) -> bool:
     import socket

@@ -1,4 +1,5 @@
 <script setup>
+
 import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterView } from 'vue-router';
 import { isHostedVersion } from './config';
